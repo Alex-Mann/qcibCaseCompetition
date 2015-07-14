@@ -1,0 +1,23 @@
+<div class="grid-block">
+  <div class="medium-5 grid-block">
+    <div class="grid-content">
+      <h1>News Feed</h1>
+      <button ng-click="addNewsItem()">Add News Item</button>
+      <button ng-click="removeNewsItem()">Remove News Item</button>
+      <section class="block-list">
+        <header>Events</header>
+        <ul>
+          <li ng-repeat="object in newsfeed"><a href="#">{{object.news}}</a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+  <div class="medium-7 grid-block vertical">
+    <div class="grid-block">
+      <h1>Performance Data</h1>
+    </div>
+    <div class="grid-block">
+      <h1>Make Trade/Accept</h1>
+    </div>
+  </div>
+</div>

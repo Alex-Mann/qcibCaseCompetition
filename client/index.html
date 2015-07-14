@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" ng-app="application">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foundation for Apps</title>
+  <link href="/assets/css/app.css" rel="stylesheet" type="text/css">
+  <script src="/assets/js/foundation.js"></script>
+  <script src="/assets/js/templates.js"></script>
+  <script src="/assets/js/routes.js"></script>
+  <script src="/assets/js/app.js"></script>
+</head>
+<body>
+
+
+<div class="grid-frame vertical">
+  <div class="grid-content shrink" style="padding: 0;" ng-controller="menuCtrl">
+    <div class="menu-group primary">
+      <div class="menu-group-left">
+        <ul class="primary condense menu-bar">
+          <li><a ui-sref="home"><strong>QCIB 2016</strong></a></li>
+          <li><a ui-sref="teams">Teams</a></li>
+          <li><a ng-click="getAuth()">Get Auth</a></li>
+          <li><a ng-click="getTeam()">Get Name</a></li>
+        </ul>
+      </div>
+      <div class="menu-group-right">
+        <ul class="primary condense menu-bar">
+          <li ng-hide="!currentTeam.name" ng-cloak><a>{{currentTeam.name}}</a></li>
+          <li ng-hide="currentTeam" ng-cloak><a zf-open="basicModal">Login</a></li>
+          <li ng-hide="!currentTeam" ng-cloak><a ng-click="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+    <!-- Modal for User Login-->
+    <div zf-modal="" id="basicModal" ng-cloak>
+      <a zf-close="" class="close-button">×</a>
+
+      <h3>Log into your team's page</h3>
+
+      <form>
+        <div class="grid-block">
+          <div class="small-12 medium-6 grid-content">
+            <label>
+              Team Name
+            </label>
+            <input type="text" placeholder="Enter your team name" ng-model="login.user">
+          </div>
+          <div class="small-12 medium-6 grid-content">
+            <label>
+              Password
+            </label>
+            <input type="password" placeholder="Enter your team's password" ng-model="login.pass">
+          </div>
+        </div>
+      </form>
+      <a class="button" ng-click="login()" zf-close="basicModal">login</a>
+    </div>
+  </div>
+  <div ui-view></div>
+</div>
+</body>
+</html>

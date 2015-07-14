@@ -1,0 +1,32 @@
+{
+  "newsFlashes": {
+    "admin": [
+      {
+        "quarter": 1,
+        "news": "News 1"
+      },
+      {
+        "quarter": 2,
+        "news": "News 2"
+      },
+      {
+        "quarter": 3,
+        "news": "News 3"
+      }
+    ],
+    "teams": [
+      {
+        "quarter": 0,
+        "news": "As news becomes available, it will populate your newsfeed. "
+      }
+    ]
+  },
+  "teams": {
+    "team1": {
+      "property1": false
+    },
+    "team2": {
+      "property1": false
+    }
+  }
+}
