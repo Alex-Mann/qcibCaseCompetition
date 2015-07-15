@@ -24,7 +24,7 @@
       });
     }])
 
-    .controller('menuCtrl', function ($scope, $state, FIREBASE_URL, $firebaseObject, Auth) {
+    .controller('topBarCtrl', function ($scope, $state, FIREBASE_URL, $firebaseObject, Auth) {
 
       $scope.login = function () {
         Auth.login($scope.login.user, $scope.login.pass);
@@ -47,13 +47,13 @@
       };
     })
 
-    .controller('homeCtrl', function ($scope, $state, Auth) {
-      $scope.login = function () {
-        Auth.login($scope.login.user, $scope.login.pass);
-      };
-    })
+    //.controller('homeCtrl', function ($scope, $state, Auth) {
+    //  $scope.login = function () {
+    //    Auth.login($scope.login.user, $scope.login.pass);
+    //  };
+    //})
 
-    .controller('AppCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
+    .controller('adminCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
       var newsfeedRef = new Firebase(FIREBASE_URL + "newsFlashes/teams");
@@ -82,6 +82,14 @@
       }
     })
 
+    .controller('teamCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
+
+      //Need to load the firebase arrays before using any functions on them, so define as global to controller
+      var newsfeedRef = new Firebase(FIREBASE_URL + "newsFlashes/teams");
+      $scope.newsfeed = $firebaseArray(newsfeedRef);
+
+    })
+
     .factory("Auth", function ($firebaseAuth, $firebaseObject, $state, $rootScope, FIREBASE_URL) {
       var ref = new Firebase(FIREBASE_URL);
       var authObj = $firebaseAuth(ref);
@@ -90,8 +98,16 @@
         if (authUser) {
           var ref = new Firebase(FIREBASE_URL + "teams/" + authUser.uid);
           var team = $firebaseObject(ref);
-          $rootScope.currentTeam = team;
-          $state.go('teams');
+          if (authUser.uid === "simplelogin:3") { //check for admin user
+            console.log(authUser);
+            $rootScope.currentTeam = team;
+            $state.go('admin');
+          }
+          else {
+            console.log(authUser);
+            $rootScope.currentTeam = team;
+            $state.go('teams');
+          }
         }
         else {
           $rootScope.currentTeam = "";
@@ -154,7 +170,20 @@
       .state('teams', {
         url: '/teams',
         templateUrl: 'templates/teams.html',
-        controller: 'AppCtrl',
+        controller: 'teamCtrl',
+        resolve: {
+          // controller will not be loaded until $waitForAuth resolves
+          // Auth refers to our $firebaseAuth wrapper in the example above
+          "currentAuth": ["Auth", function (Auth) {
+            // requireAuth returns a promise if authenticated, rejects if not
+            return Auth.requireAuth();
+          }]
+        }
+      })
+      .state('admin', {
+        url: '/admin',
+        templateUrl: 'templates/admin.html',
+        controller: 'adminCtrl',
         resolve: {
           // controller will not be loaded until $waitForAuth resolves
           // Auth refers to our $firebaseAuth wrapper in the example above
@@ -164,7 +193,6 @@
           }]
         }
       });
-
     // Default to the index view if the URL loaded is not found
     $urlProvider.otherwise('/');
 
