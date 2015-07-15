@@ -47,46 +47,55 @@
       };
     })
 
-    //.controller('homeCtrl', function ($scope, $state, Auth) {
-    //  $scope.login = function () {
-    //    Auth.login($scope.login.user, $scope.login.pass);
-    //  };
-    //})
+    // Controller for the website landing page
+    .controller('homeCtrl', function ($scope, $state, Auth) {
+      //Put controller logic here
+    })
 
     .controller('adminCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
-      var newsfeedRef = new Firebase(FIREBASE_URL + "newsFlashes/teams");
-      $scope.newsfeed = $firebaseArray(newsfeedRef);
+      var teamsNewsFeedRef = new Firebase(FIREBASE_URL + "newsFlashes/teams");
+      $scope.teamNewsFeed = $firebaseArray(teamsNewsFeedRef);
 
-      var adminNewsfeedRef = new Firebase(FIREBASE_URL + "newsFlashes/admin");
-      var adminNews = $firebaseArray(adminNewsfeedRef);
-      var counter = 0;
+      var adminNewsFeedRef = new Firebase(FIREBASE_URL + "newsFlashes/admin");
+      $scope.adminNewsFeed = $firebaseArray(adminNewsFeedRef);
 
       var testName = new Firebase(FIREBASE_URL + "teams/simplelogin:2");
       $scope.testName1 = $firebaseObject(testName);
 
-      //admin function to add events to teams news feeds
-      $scope.addNewsItem = function () {
-        console.log("testing name access:" + $scope.testName1.name);
-        $scope.newsfeed.$add(adminNews[counter]).then(function (ref) {
-          var id = ref.key();
-          console.log("Added record with id: " + id);
-          console.log("Location in array: " + counter + " Item: " + adminNews[counter]);
-          counter++;
-        });
+      //admin function to toggle news events to teams news feeds
+      $scope.toggleNewsItem = function (newsObject) {
+        if (newsObject.sentToTeams) {
+          var indexToRemove = $scope.teamNewsFeed.$indexFor(newsObject.teamsNewsFeedId);
+          $scope.teamNewsFeed.$remove(indexToRemove).then(function (ref) {
+            newsObject.teamsNewsFeedId = "";
+            newsObject.sentToTeams = false;
+            $scope.adminNewsFeed.$save($scope.adminNewsFeed.$indexFor(newsObject.$id));
+          });
+        }
+        else {
+          $scope.teamNewsFeed.$add(newsObject).then(function (ref) {
+            newsObject.teamsNewsFeedId = ref.key();
+            newsObject.sentToTeams = true;
+            $scope.adminNewsFeed.$save($scope.adminNewsFeed.$indexFor(newsObject.$id));
+          });
+        }
       };
 
+      //remove the top item from the team news feed
       $scope.removeNewsItem = function () {
-        $scope.newsfeed.$remove(1);
+        $scope.teamNewsFeed.$remove(1);
       }
     })
 
     .controller('teamCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
-      var newsfeedRef = new Firebase(FIREBASE_URL + "newsFlashes/teams");
-      $scope.newsfeed = $firebaseArray(newsfeedRef);
+      var newsFeedRef = new Firebase(FIREBASE_URL).child("newsFlashes").child("teams");
+      var query = newsFeedRef.orderByChild("quarter");
+      $scope.newsfeed = $firebaseArray(query);
+
 
     })
 

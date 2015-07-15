@@ -7,15 +7,14 @@
       <section class="block-list">
         <header>Events</header>
         <ul>
-          <li ng-repeat="object in newsfeed">
-            <a href="#">
-              <div>
-              {{object.news}}
-              </div>
+          <li ng-repeat="object in adminNewsFeed">
+            <a>
+              {{object.news}} status:{{object.sentToTeams}}
             </a>
             <div class="small switch">
-              <input type="checkbox" id="switchOne">
-              <label for="switchOne"></label>
+              <input type="checkbox" id="newsObjectQuarter{{object.quarter}}" ng-model="object.sentToTeams">
+              <label for="newsObjectQuarter{{object.quarter}}"  ng-click="toggleNewsItem(object)">
+              </label>
             </div>
           </li>
         </ul>
