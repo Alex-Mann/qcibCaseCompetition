@@ -11,9 +11,10 @@
             <a>
               {{object.news}} status:{{object.sentToTeams}}
             </a>
+
             <div class="small switch">
               <input type="checkbox" id="newsObjectQuarter{{object.quarter}}" ng-model="object.sentToTeams">
-              <label for="newsObjectQuarter{{object.quarter}}"  ng-click="toggleNewsItem(object)">
+              <label for="newsObjectQuarter{{object.quarter}}" ng-click="toggleNewsItem(object)">
               </label>
             </div>
           </li>
@@ -22,8 +23,8 @@
     </div>
   </div>
   <div class="medium-7 grid-block vertical">
-    <div class="grid-block">
-      <h1>Performance Data</h1>
+    <div class="grid-block" ng-controller="highchartsCtrl">
+      <highchart id="chart1" config="chartConfig" class="span10"></highchart>
     </div>
     <div class="grid-block">
       <h1>Make Trade/Accept</h1>

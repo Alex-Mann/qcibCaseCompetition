@@ -25,6 +25,8 @@
   "dependencies": {
     "foundation-apps": "~1.1.0",
     "firebase": "~2.2.7",
-    "angularfire": "~1.1.2"
+    "angularfire": "~1.1.2",
+    "highcharts-ng": "~0.0.8",
+    "jquery": "~2.1.4"
   }
 }

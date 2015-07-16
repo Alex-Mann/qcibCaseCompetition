@@ -38,14 +38,18 @@ var paths = {
     'bower_components/angular/angular.js',
     'bower_components/angular-animate/angular-animate.js',
     'bower_components/angular-ui-router/release/angular-ui-router.js',
+    'bower_components/jquery/dist/jquery.js',
     'bower_components/firebase/firebase.js',
     'bower_components/angularfire/dist/angularfire.js',
+    'etc/highstock.src.js',
+    'bower_components/highcharts-ng/dist/highcharts-ng.js',
     'bower_components/foundation-apps/js/vendor/**/*.js',
     'bower_components/foundation-apps/js/angular/**/*.js',
     '!bower_components/foundation-apps/js/angular/app.js'
   ],
   // These files are for your app's JavaScript
   appJS: [
+
     'client/assets/js/app.js'
   ]
 }
