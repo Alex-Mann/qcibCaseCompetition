@@ -156,6 +156,12 @@
       });
     })
 
+    .controller('tradeCtrl', function ($scope, tradeManager) {
+      $scope.makeTrade = function () {
+        tradeManager.makeTrade("something", "simplelogin:2");
+      }
+    })
+
     .factory("Auth", function ($firebaseAuth, $firebaseObject, $state, $rootScope, FIREBASE_URL) {
       var ref = new Firebase(FIREBASE_URL);
       var authObj = $firebaseAuth(ref);
@@ -221,6 +227,77 @@
       };
     })
 
+    .factory("tradeManager", function (Auth, $firebaseArray, $firebaseObject, FIREBASE_URL) {
+      var availableTeams;
+      var userId = Auth.getAuth().uid;
+
+      var tradesSentRef = new Firebase(FIREBASE_URL).child("teams").child(userId).child("trades").child("sent");
+      var tradesSent = $firebaseArray(tradesSentRef); // trade sent array specific to each user
+
+      var makeTrade = function (price, receivingTeam) {
+        var tradesRef = new Firebase(FIREBASE_URL).child("trades");
+        var trades = $firebaseArray(tradesRef); // Trade status object containing accept, pend arrays
+        var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam).child("trades").child("pending");
+        var receivingTeamPending = $firebaseArray(receivingTeamRef); // trade pending array specific to receiving team
+        var tradeObject = {
+          companyProviding: "Providing Team",
+          companyReceiving: "Receiving Team",
+          industry: "Accounting",
+          service: "Audit",
+          interalCostOfService: "1 MIL",
+          priceSoldFor: "2 MIL",
+          quarter: "1"
+        };
+        return trades.$add(tradeObject).then(function (ref) {
+          var id = ref.key();
+          console.log(tradesSent, id);
+          tradesSent.$add(id); // add trade ID to sent trades array
+          tradesSent.$save(id); // save the id to the array
+          receivingTeamPending.$add(id); // add trade ID to sent trades array
+          receivingTeamPending.$save(id); // save the id to the array
+        });
+      };
+
+      var acceptTrade = function (id) {
+        var tradesAcceptRef = new Firebase(FIREBASE_URL).child("teams").child(userId).child("trades").child("sent");
+        var tradesAccept = $firebaseArray(tradesAcceptRef); // trade sent array specific to each user
+
+        tradesSent.$remove(id)
+          .then(function () {
+            tradesAccept.$add(id)
+              .then(function (ref) {
+                console.log("trade successfully accepted.");
+              });
+          });
+        tradesAccept.$save(id);
+      };
+
+      var declineTrade = function () {
+        var tradesDeclinedRef = new Firebase(FIREBASE_URL).child("teams").child(userId).child("trades").child("declined");
+        var tradesDeclined = $firebaseArray(tradesDeclinedRef); // trade sent array specific to each user
+
+        tradesSent.$remove(id)
+          .then(function () {
+            tradesDeclined.$add(id)
+              .then(function () {
+                console.log("trade successfully declined.");
+              });
+          });
+        tradesDeclined.$save(id);
+      };
+
+      var getTrades = function () {
+
+      };
+
+      return {
+        makeTrade: makeTrade,
+        acceptTrade: acceptTrade,
+        declineTrade: declineTrade,
+        getTrades: getTrades
+      }
+    })
+
     .config(config)
     .run(run);
 
@@ -277,4 +354,5 @@
     FastClick.attach(document.body);
   }
 
-})();
+})
+();
