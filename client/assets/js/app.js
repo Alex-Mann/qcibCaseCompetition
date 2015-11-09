@@ -91,13 +91,18 @@
 
     })
 
-    .controller('teamCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
+    .controller('teamCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL, Auth) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
       var newsFeedRef = new Firebase(FIREBASE_URL).child("newsFlashes").child("teams");
       var query = newsFeedRef.orderByChild("quarter");
       $scope.newsfeed = $firebaseArray(query);
 
+      var tradesRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades");
+      $scope.trades = $firebaseObject(tradesRef);
+      $scope.seeTrades = function () {
+        console.log($scope.trades.pending);
+      }
 
     })
 
@@ -240,8 +245,8 @@
         var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam).child("trades").child("pending");
         var receivingTeamPending = $firebaseArray(receivingTeamRef); // trade pending array specific to receiving team
         var tradeObject = {
-          companyProviding: "Providing Team",
-          companyReceiving: "Receiving Team",
+          companyProviding: "the Providing Team",
+          companyReceiving: "the Receiving Team",
           industry: "Accounting",
           service: "Audit",
           interalCostOfService: "1 MIL",
@@ -251,10 +256,10 @@
         return trades.$add(tradeObject).then(function (ref) {
           var id = ref.key();
           console.log(tradesSent, id);
-          tradesSent.$add(id); // add trade ID to sent trades array
-          tradesSent.$save(id); // save the id to the array
-          receivingTeamPending.$add(id); // add trade ID to sent trades array
-          receivingTeamPending.$save(id); // save the id to the array
+          tradesSent.$add(tradeObject); // add trade ID to sent trades array
+          tradesSent.$save(tradeObject); // save the id to the array
+          receivingTeamPending.$add(tradeObject); // add trade ID to sent trades array
+          receivingTeamPending.$save(tradeObject); // save the id to the array
         });
       };
 

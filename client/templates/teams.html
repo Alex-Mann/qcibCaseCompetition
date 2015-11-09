@@ -14,8 +14,60 @@
     <div class="grid-block" ng-controller="highchartsCtrl">
       <highchart id="chart1" config="chartConfig" class="span10"></highchart>
     </div>
+    <div class="grid-block medium-12">
+      <h1>Trading Panel</h1>
+    </div>
     <div class="grid-block">
-      <h1>Make Trade/Accept</h1>
+      <div class="grid-content">
+        <a class="button" ng-click="seeTrades()">See Trades</a>
+
+        <div class="grid-block">
+          <div class="small-12 medium-6 grid-content">
+            <label>Select Team</label>
+            <select name="" id="">
+              <option value="">Team 1</option>
+              <option value="">Team 2</option>
+              <option value="">Team 3</option>
+              <option value="">Team 4</option>
+            </select>
+          </div>
+          <div class="small-12 medium-6 grid-content">
+            <label>Select Service</label>
+            <select name="" id="">
+              <option value="">Service 1</option>
+              <option value="">Service 2</option>
+              <option value="">Service 3</option>
+              <option value="">Service 4</option>
+            </select>
+          </div>
+          <div class="small-12 grid-content">
+            <label>
+              Negotiated Selling Price
+            <span class="inline-label">
+              <input type="search" placeholder="Enter Price">
+              <a href="#" class="button">Send Offer</a>
+            </span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="grid-block">
+        <div class="grid-block" style="max-height: 500px">
+          <section class="block-list">
+            <header>Offered Trades</header>
+            <ul>
+              <li ng-repeat="object in trades.pending">
+                <a href="#">
+                  {{object.companyProviding}} wants to sell you {{object.service}} services, for a price of
+                  {{object.priceSoldFor}}
+                  <a class="success button" href="#">Accept</a>
+                  <a class="alert button" href="#">Decline</a>
+                </a>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>
   </div>
 </div>
