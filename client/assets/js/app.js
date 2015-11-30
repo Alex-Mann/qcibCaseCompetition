@@ -104,6 +104,22 @@
         console.log($scope.trades.pending);
       }
 
+      var competitorsRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("competitors");
+      $scope.competitors = $firebaseObject(competitorsRef);
+
+      var servicesRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("services");
+      $scope.servicesOffered = $firebaseObject(servicesRef);
+
+      // Define ng model variables EMPTY for when page loads - see teams.html trade section
+      $scope.buyingTeam = '';
+      $scope.serviceToSell = '';
+
+      $scope.testClick = function() {
+        console.log($scope.buyingTeam);
+        console.log($scope.serviceToSell);
+        console.log(Auth.getAuth().uid);
+      }
+
     })
 
     .controller('highchartsCtrl', function ($scope, $timeout) {
@@ -175,7 +191,7 @@
         if (authUser) {
           var ref = new Firebase(FIREBASE_URL + "teams/" + authUser.uid);
           var team = $firebaseObject(ref);
-          if (authUser.uid === "simplelogin:3") { //check for admin user
+          if (authUser.uid === "ca97176c-ad12-457a-954e-580ba61574d6") { //check for admin user
             console.log(authUser);
             $rootScope.currentTeam = team;
             $state.go('admin');
@@ -244,6 +260,7 @@
         var trades = $firebaseArray(tradesRef); // Trade status object containing accept, pend arrays
         var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam).child("trades").child("pending");
         var receivingTeamPending = $firebaseArray(receivingTeamRef); // trade pending array specific to receiving team
+
         var tradeObject = {
           companyProviding: "the Providing Team",
           companyReceiving: "the Receiving Team",
@@ -253,6 +270,7 @@
           priceSoldFor: "2 MIL",
           quarter: "1"
         };
+
         return trades.$add(tradeObject).then(function (ref) {
           var id = ref.key();
           console.log(tradesSent, id);

@@ -24,20 +24,14 @@
         <div class="grid-block">
           <div class="small-12 medium-6 grid-content">
             <label>Select Team</label>
-            <select name="" id="">
-              <option value="">Team 1</option>
-              <option value="">Team 2</option>
-              <option value="">Team 3</option>
-              <option value="">Team 4</option>
+            <select ng-model="buyingTeam" ng-options="competitor.name for (id,competitor) in competitors">
+              <option value="" disabled="disabled" ng-selected="true">Choose a Team</option>
             </select>
           </div>
           <div class="small-12 medium-6 grid-content">
             <label>Select Service</label>
-            <select name="" id="">
-              <option value="">Service 1</option>
-              <option value="">Service 2</option>
-              <option value="">Service 3</option>
-              <option value="">Service 4</option>
+            <select ng-model="serviceToSell" ng-options="service for (id, service) in servicesOffered">
+              <option value="" disabled="disabled" ng-selected="true">Choose a Service</option>
             </select>
           </div>
           <div class="small-12 grid-content">
@@ -45,7 +39,7 @@
               Negotiated Selling Price
             <span class="inline-label">
               <input type="search" placeholder="Enter Price">
-              <a href="#" class="button">Send Offer</a>
+              <a href="#" ng-click="testClick()" class="button">Send Offer</a>
             </span>
             </label>
           </div>
