@@ -137,10 +137,11 @@
         },
         series: [],
         title: {
-          text: 'Hello'
+          text: 'Quarterly Revenue and Cost Data'
         },
-        useHighStocks: true
-      }
+        useHighStocks: false
+      };
+
       $scope.chartConfig.series.push({
         id: 1,
         data: [
@@ -177,9 +178,23 @@
       });
     })
 
-    .controller('tradeCtrl', function ($scope, tradeManager) {
-      $scope.makeTrade = function () {
-        tradeManager.makeTrade("something", "simplelogin:2");
+    .controller('tradeCtrl', function ($scope, tradeManager, Auth) {
+      $scope.makeTrade = function (price, receivingTeam, serviceOffered) {
+        tradeManager.makeTrade(price, receivingTeam, $scope.currentTeam, serviceOffered);
+      };
+
+      $scope.acceptTrade = function (id) {
+        tradeManager.acceptTrade(id);
+      };
+
+      $scope.declineTrade = function (id) {
+        tradeManager.declineTrade(id);
+      };
+
+      $scope.testTrade = function (price, receivingTeam, serviceOffered) {
+        console.log($scope.currentTeam.name + " with Id of " + Auth.getAuth().uid + " is selling " + serviceOffered + " for $" + price + " to " + receivingTeam.name + " with Id of " + receivingTeam.id);
+        console.log($scope.currentTeam);
+        console.log(receivingTeam);
       }
     })
 
@@ -187,17 +202,18 @@
       var ref = new Firebase(FIREBASE_URL);
       var authObj = $firebaseAuth(ref);
 
+      // Set the state of the app and the rootscope object currentTeam to the object containing the currentTeam data
       authObj.$onAuth(function (authUser) {
         if (authUser) {
           var ref = new Firebase(FIREBASE_URL + "teams/" + authUser.uid);
           var team = $firebaseObject(ref);
           if (authUser.uid === "ca97176c-ad12-457a-954e-580ba61574d6") { //check for admin user
-            console.log(authUser);
+            //console.log(authUser);
             $rootScope.currentTeam = team;
             $state.go('admin');
           }
           else {
-            console.log(authUser);
+            //console.log(authUser);
             $rootScope.currentTeam = team;
             $state.go('teams');
           }
@@ -250,63 +266,123 @@
 
     .factory("tradeManager", function (Auth, $firebaseArray, $firebaseObject, FIREBASE_URL) {
       var availableTeams;
-      var userId = Auth.getAuth().uid;
+      var currentUserId = Auth.getAuth().uid; // Get the currentUserId of the currently logged in team for the trade
 
-      var tradesSentRef = new Firebase(FIREBASE_URL).child("teams").child(userId).child("trades").child("sent");
-      var tradesSent = $firebaseArray(tradesSentRef); // trade sent array specific to each user
+      // Define all the firebase arrays needed for the below functions
+      var tradesSentRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("trades").child("sent");
+      var tradesSent = $firebaseArray(tradesSentRef);
 
-      var makeTrade = function (price, receivingTeam) {
-        var tradesRef = new Firebase(FIREBASE_URL).child("trades");
-        var trades = $firebaseArray(tradesRef); // Trade status object containing accept, pend arrays
-        var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam).child("trades").child("pending");
+      var tradesPendingRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("trades").child("pending");
+      var tradesPending = $firebaseArray(tradesPendingRef);
+
+      var tradesAcceptRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("trades").child("accepted");
+      var tradesAccept = $firebaseArray(tradesAcceptRef); // trade sent array specific to each user
+
+      var tradesDeclinedRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("trades").child("declined");
+      var tradesDeclined = $firebaseArray(tradesDeclinedRef);
+
+      var makeTrade = function (price, receivingTeam, providingTeam, serviceOffered) {
+
+        var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam.id).child("trades").child("pending");
         var receivingTeamPending = $firebaseArray(receivingTeamRef); // trade pending array specific to receiving team
 
+        console.log(providingTeam.name + " with Id of " + currentUserId + " is selling " + serviceOffered + " for $" + price + " to " + receivingTeam.name + " with Id of " + receivingTeam.id)
+
         var tradeObject = {
-          companyProviding: "the Providing Team",
-          companyReceiving: "the Receiving Team",
+          companyProvidingId: currentUserId, // Defined above
+          companyProvidingName: providingTeam.name, // Get the currently logged in team's name
+          companyReceivingId: receivingTeam.id,
+          companyReceivingName: receivingTeam.name,
           industry: "Accounting",
-          service: "Audit",
+          service: serviceOffered,
           interalCostOfService: "1 MIL",
-          priceSoldFor: "2 MIL",
+          priceSoldFor: price,
           quarter: "1"
         };
 
-        return trades.$add(tradeObject).then(function (ref) {
-          var id = ref.key();
-          console.log(tradesSent, id);
-          tradesSent.$add(tradeObject); // add trade ID to sent trades array
-          tradesSent.$save(tradeObject); // save the id to the array
-          receivingTeamPending.$add(tradeObject); // add trade ID to sent trades array
-          receivingTeamPending.$save(tradeObject); // save the id to the array
-        });
+        var tradeSentId = '';
+        var tradePendingId = '';
+
+        tradesSent.$add(tradeObject)
+          .then(function (ref) {
+            tradeSentId = ref.key(); // Save the id that firebase stores for the sent array
+            receivingTeamPending.$add(tradeObject)
+              .then(function (ref) {
+                tradePendingId = ref.key(); // Save the id that firebase stores for the pending array
+
+                // Get the indexes for the current trade objects
+                var tradeSentIndex = tradesSent.$indexFor(tradeSentId);
+                var tradePendingIndex = receivingTeamPending.$indexFor(tradePendingId);
+
+                tradesSent[tradeSentIndex].tradeSentId = tradeSentId;
+                tradesSent[tradeSentIndex].tradePendingId = tradePendingId;
+                receivingTeamPending[tradePendingIndex].tradeSentId = tradeSentId;
+                receivingTeamPending[tradePendingIndex].tradePendingId = tradePendingId;
+                tradesSent.$save(tradeSentIndex);
+                receivingTeamPending.$save(tradePendingIndex);
+
+              }); // add trade ID to the receiving team's trades pending array
+          }); // add trade ID to sent trades array
+
       };
 
       var acceptTrade = function (id) {
-        var tradesAcceptRef = new Firebase(FIREBASE_URL).child("teams").child(userId).child("trades").child("sent");
-        var tradesAccept = $firebaseArray(tradesAcceptRef); // trade sent array specific to each user
 
-        tradesSent.$remove(id)
-          .then(function () {
-            tradesAccept.$add(id)
-              .then(function (ref) {
-                console.log("trade successfully accepted.");
-              });
-          });
-        tradesAccept.$save(id);
+        var tradeObjectPending = tradesPending.$getRecord(id);
+
+        // Define the providing team's sent array to remove trade object
+        var providingTeamId = tradesPending.$getRecord(id).companyProvidingId;
+
+        var providingTeamSentRef = new Firebase(FIREBASE_URL).child("teams").child(providingTeamId).child("trades").child("sent");
+        var providingTeamTradesSent = $firebaseArray(providingTeamSentRef);
+        var providingTeamAcceptedRef = new Firebase(FIREBASE_URL).child("teams").child(providingTeamId).child("trades").child("accepted");
+        var providingTeamTradesAccepted = $firebaseArray(providingTeamAcceptedRef);
+
+        // Remove and add to the accepted array for the offering team
+        var sentTradeId = tradeObjectPending.tradeSentId;
+        providingTeamTradesSent.$loaded(function () { // Always remember to make sure the data is loaded before executing
+          var recordToRemove = providingTeamTradesSent.$getRecord(sentTradeId);
+          providingTeamTradesSent.$remove(recordToRemove);
+        });
+
+        // Add the trade object to the accepted array for the other team
+        providingTeamTradesAccepted.$add(tradeObjectPending);
+        providingTeamTradesAccepted.$save(tradeObjectPending);
+
+        // Add the trade object to the currently using team
+        tradesPending.$remove(tradeObjectPending);
+        tradesAccept.$add(tradeObjectPending);
+        tradesAccept.$save(tradeObjectPending);
+
       };
 
-      var declineTrade = function () {
-        var tradesDeclinedRef = new Firebase(FIREBASE_URL).child("teams").child(userId).child("trades").child("declined");
-        var tradesDeclined = $firebaseArray(tradesDeclinedRef); // trade sent array specific to each user
+      var declineTrade = function (id) {
 
-        tradesSent.$remove(id)
-          .then(function () {
-            tradesDeclined.$add(id)
-              .then(function () {
-                console.log("trade successfully declined.");
-              });
-          });
-        tradesDeclined.$save(id);
+        // Define the providing team's sent array to remove trade object
+        var providingTeamId = tradesPending[id].companyProvidingId;
+
+        var providingTeamSentRef = new Firebase(FIREBASE_URL).child("teams").child(providingTeamId).child("trades").child("sent");
+        var providingTeamTradesSent = $firebaseArray(providingTeamSentRef);
+        var providingTeamDeclinedRef = new Firebase(FIREBASE_URL).child("teams").child(providingTeamId).child("trades").child("declined");
+        var providingTeamTradesDeclined = $firebaseArray(providingTeamDeclinedRef);
+
+        // Define the trade object and the id for the same object in the sending teams array
+        var tradeObjectPending = tradesPending[id];
+        var sentTradeId = tradeObjectPending.tradeSentId;
+
+        providingTeamTradesSent.$loaded(function () { // Always remember to make sure the data is loaded before executing
+          var recordToRemove = providingTeamTradesSent.$getRecord(sentTradeId);
+          providingTeamTradesSent.$remove(recordToRemove);
+        });
+
+        // Add the trade object to the accepted array for the other team
+        providingTeamTradesDeclined.$add(tradeObjectPending);
+        providingTeamTradesDeclined.$save(tradeObjectPending);
+
+        // Add the trade object to the currently using team
+        tradesPending.$remove(tradeObjectPending);
+        tradesDeclined.$add(tradeObjectPending);
+        tradesDeclined.$save(tradeObjectPending);
       };
 
       var getTrades = function () {
