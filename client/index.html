@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Foundation for Apps</title>
+  <title>QCIB Case Simulation</title>
+  <link href="/assets/img/favicon.ico" rel="icon" type="image/x-icon" />
   <link href="/assets/css/app.css" rel="stylesheet" type="text/css">
   <script src="/assets/js/foundation.js"></script>
   <script src="/assets/js/templates.js"></script>
@@ -18,17 +19,19 @@
     <div class="menu-group primary">
       <div class="menu-group-left">
         <ul class="primary condense menu-bar">
-          <li><a ui-sref="home"><strong>QCIB 2016</strong></a></li>
-          <li><a ui-sref="teams">Teams</a></li>
-          <li><a ng-click="getAuth()">Get Auth</a></li>
-          <li><a ng-click="getTeam()">Get Team</a></li>
+          <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home"><img style="margin-bottom: 0px" src="assets/img/qciblogo.png"></img></a></li>
+          <li><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
+          <li><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
+          <!--<li><a ng-click="getAuth()">Get Auth</a></li>-->
+          <!--<li><a ng-click="getTeam()">Get Team</a></li>-->
         </ul>
       </div>
       <div class="menu-group-right">
         <ul class="primary condense menu-bar">
-          <li ng-hide="!currentTeam.name" ng-cloak><a>{{currentTeam.name}}</a></li>
-          <li ng-hide="currentTeam" ng-cloak><a zf-open="basicModal">Login</a></li>
-          <li ng-hide="!currentTeam" ng-cloak><a ng-click="logout()">Logout</a></li>
+          <li ng-hide="!currentTeam.name" ng-cloak><a class="fa fa-clock-o">Current Quarter: {{currentQuarter.$value}}</a></li>
+          <li ng-hide="!currentTeam.name" ng-cloak><a class="fa fa-user">{{currentTeam.name}}</a></li>
+          <li ng-hide="currentTeam" ng-cloak><a class="fa fa-sign-in" zf-open="basicModal">Login</a></li>
+          <li ng-hide="!currentTeam" ng-cloak><a class="fa fa-sign-out" ng-click="logout()">Logout</a></li>
         </ul>
       </div>
     </div>

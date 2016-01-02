@@ -26,11 +26,14 @@
     }])
 
     .controller('topBarCtrl', function ($scope, $state, FIREBASE_URL, $firebaseObject, Auth) {
+      var currentQuarterRef = new Firebase(FIREBASE_URL + "newsFlashes/currentQuarter");
+      $scope.currentQuarter = $firebaseObject(currentQuarterRef);
 
       $scope.login = function () {
         Auth.login($scope.login.user, $scope.login.pass);
       };
       $scope.logout = function () {
+        //console.log($scope.dataObj);
         Auth.logout();
       };
       $scope.getAuth = function () {
@@ -49,10 +52,32 @@
     })
 
     // Controller for the website landing page
-    .controller('homeCtrl', function ($scope, $state, Auth) {
+    .controller('homeCtrl', function ($scope, $state, Auth, $firebaseObject) {
       //Put controller logic here
     })
+    // Controller for the website landing page
+    .controller('companyAndServiceInfoCtrl', function ($scope, $state, Auth, $firebaseObject, FIREBASE_URL) {
+      $scope.companyInfo = $firebaseObject(new Firebase(FIREBASE_URL + "simInfo/companyBios"));
+      $scope.serviceInfo = $firebaseObject(new Firebase(FIREBASE_URL + "simInfo/serviceInfo"));
 
+      $scope.showCompanies = {
+        accounting: false,
+        consulting: true,
+        finance: true,
+        marketing: true
+      };
+      $scope.radioVal = "accounting";
+      $scope.toggleCards = function (industry) {
+        var visibility = {
+          accounting: true,
+          consulting: true,
+          finance: true,
+          marketing: true
+        };
+        visibility[industry] = false;
+        $scope.showCompanies = visibility;
+      };
+    })
     .controller('adminCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
@@ -62,8 +87,20 @@
       var adminNewsFeedRef = new Firebase(FIREBASE_URL + "newsFlashes/admin");
       $scope.adminNewsFeed = $firebaseArray(adminNewsFeedRef);
 
-      var testName = new Firebase(FIREBASE_URL + "teams/simplelogin:2");
-      $scope.testName1 = $firebaseObject(testName);
+      var currentQuarterRef = new Firebase(FIREBASE_URL + "newsFlashes/currentQuarter");
+      $scope.currentQuarter = $firebaseObject(currentQuarterRef);
+
+      var setCurrentQuarter = function () {
+        var quarterValue = 0;
+
+        $scope.teamNewsFeed.forEach(function (arrayObject) {
+          if (arrayObject.quarter && (arrayObject.quarter > quarterValue)) {
+            quarterValue = arrayObject.quarter;
+          }
+        });
+        $scope.currentQuarter.$value = quarterValue;
+        $scope.currentQuarter.$save();
+      };
 
       //admin function to toggle news events to teams news feeds
       $scope.toggleNewsItem = function (newsObject) {
@@ -73,6 +110,7 @@
             newsObject.teamsNewsFeedId = "";
             newsObject.sentToTeams = false;
             $scope.adminNewsFeed.$save($scope.adminNewsFeed.$indexFor(newsObject.$id));
+            setCurrentQuarter();
           });
         }
         else {
@@ -80,8 +118,10 @@
             newsObject.teamsNewsFeedId = ref.key();
             newsObject.sentToTeams = true;
             $scope.adminNewsFeed.$save($scope.adminNewsFeed.$indexFor(newsObject.$id));
+            setCurrentQuarter();
           });
         }
+
       };
 
       //remove the top item from the team news feed
@@ -98,8 +138,17 @@
       var query = newsFeedRef.orderByChild("quarter");
       $scope.newsfeed = $firebaseArray(query);
 
+      $scope.newsNest = $scope.newsfeed.news;
+
+      console.log($scope.newsfeed);
+
       var tradesRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades");
       $scope.trades = $firebaseObject(tradesRef);
+
+      var teamRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid);
+      $scope.teamInfo = $firebaseObject(teamRef);
+      console.log($scope.teamInfo);
+
       $scope.seeTrades = function () {
         console.log($scope.trades.pending);
       }
@@ -122,18 +171,24 @@
 
     })
 
-    .controller('highchartsCtrl', function ($scope, $timeout) {
+    .controller('highchartsCtrl', function ($scope, $timeout, $firebaseArray, $FirebaseObject, FIREBASE_URL, Auth) {
       $scope.chartConfig = {
         options: {
           chart: {
             zoomType: 'x'
           },
           rangeSelector: {
-            enabled: true
+            enabled: false
           },
           navigator: {
-            enabled: true
+            enabled: false
           }
+        },
+        xAxis: {
+          title: {text: 'Quarter'}
+        },
+        yAxis: {
+          title: {text: 'Dollars ($)'}
         },
         series: [],
         title: {
@@ -141,41 +196,21 @@
         },
         useHighStocks: false
       };
+    //  $scope.chartConfig.series.push({
+    //    name:"test",
+    //    data: [0, '0']
+    //});
 
-      $scope.chartConfig.series.push({
-        id: 1,
-        data: [
-          [1147651200000, 23.15],
-          [1147737600000, 23.01],
-          [1147824000000, 22.73],
-          [1147910400000, 22.83],
-          [1147996800000, 22.56],
-          [1148256000000, 22.88],
-          [1148342400000, 22.79],
-          [1148428800000, 23.50],
-          [1148515200000, 23.74],
-          [1148601600000, 23.72],
-          [1148947200000, 23.15],
-          [1149033600000, 22.65]
-        ]
-      }, {
-        id: 2,
-        data: [
-          [1147651200000, 25.15],
-          [1147737600000, 25.01],
-          [1147824000000, 25.73],
-          [1147910400000, 25.83],
-          [1147996800000, 25.56],
-          [1148256000000, 25.88],
-          [1148342400000, 25.79],
-          [1148428800000, 25.50],
-          [1148515200000, 26.74],
-          [1148601600000, 26.72],
-          [1148947200000, 26.15],
-          [1149033600000, 26.65]
-        ]
+      var chartRef =  new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("charting");
+      $scope.chartConfig.series = $firebaseArray(chartRef);
 
-      });
+      //chartObject.$watch(function () {
+      //  console.log("called watch");
+      //  $scope.chartConfig.series[0].data = chartObject[0].data;
+      //
+      //});
+
+      console.log($scope.chartConfig.series);
     })
 
     .controller('tradeCtrl', function ($scope, tradeManager, Auth) {
@@ -265,7 +300,6 @@
     })
 
     .factory("tradeManager", function (Auth, $firebaseArray, $firebaseObject, FIREBASE_URL) {
-      var availableTeams;
       var currentUserId = Auth.getAuth().uid; // Get the currentUserId of the currently logged in team for the trade
 
       // Define all the firebase arrays needed for the below functions
@@ -281,24 +315,47 @@
       var tradesDeclinedRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("trades").child("declined");
       var tradesDeclined = $firebaseArray(tradesDeclinedRef);
 
+      var currentQuarterRef = new Firebase(FIREBASE_URL + "newsFlashes/currentQuarter");
+      var currentQuarter = $firebaseObject(currentQuarterRef);
+
+      // Buying team is also the team that is accepting the trade
+      var buyingTeamFinancialRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("financials");
+      var buyingTeamFinancials = $firebaseArray(buyingTeamFinancialRef);
+
+      // Load the buying team (current user) charting data
+      var buyingTeamChartingRef = new Firebase(FIREBASE_URL).child("teams").child(currentUserId).child("charting");
+      var buyingTeamCharting = $firebaseArray(buyingTeamChartingRef);
+
+      // Load the service details for calculation purposes
+      var serviceDetailsRef = new Firebase(FIREBASE_URL).child("serviceDetails");
+      var serviceDetails= $firebaseObject(serviceDetailsRef);
+
+      // Load the quarterly details for the calculation process
+      var quarterlyDetailsRef = new Firebase(FIREBASE_URL).child("quarterlyDetails");
+      var quarterlyDetails= $firebaseArray(quarterlyDetailsRef);
+
+      // Load the location details for all the firms
+      var locationDetailsRef = new Firebase(FIREBASE_URL).child("locationDetails");
+      var locationDetails= $firebaseObject(locationDetailsRef);
+
       var makeTrade = function (price, receivingTeam, providingTeam, serviceOffered) {
 
         var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam.id).child("trades").child("pending");
         var receivingTeamPending = $firebaseArray(receivingTeamRef); // trade pending array specific to receiving team
 
         console.log(providingTeam.name + " with Id of " + currentUserId + " is selling " + serviceOffered + " for $" + price + " to " + receivingTeam.name + " with Id of " + receivingTeam.id)
-
+        console.log(providingTeam);
         var tradeObject = {
           companyProvidingId: currentUserId, // Defined above
           companyProvidingName: providingTeam.name, // Get the currently logged in team's name
           companyReceivingId: receivingTeam.id,
           companyReceivingName: receivingTeam.name,
-          industry: "Accounting",
+          industry: providingTeam.industry,
           service: serviceOffered,
-          interalCostOfService: "1 MIL",
-          priceSoldFor: price,
-          quarter: "1"
+          priceSoldFor: Number(price),
+          quarter: Number(currentQuarter.$value)
         };
+        console.log(tradeObject);
 
         var tradeSentId = '';
         var tradePendingId = '';
@@ -326,10 +383,98 @@
 
       };
 
+      var updateFinancials = function (tradeObject) {
+        // Add the financial info for the buying team
+        buyingTeamFinancials[tradeObject.quarter - 1].operatingExpenses = Number(tradeObject.priceSoldFor);
+
+        // Determine the operational savings for the buying team
+        var serviceMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].serviceMultiplier[tradeObject.industry].serviceChosen[tradeObject.service]);
+        buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings = Number(2000000 * serviceMultiplier);
+
+        // If the buying team purchases the service from a company that is domestic to them they receive a lower tax rate
+        var buyingTeamLocation = locationDetails[tradeObject.companyReceivingName];
+        var sellingTeamLocation = locationDetails[tradeObject.companyProvidingName];
+        if ( buyingTeamLocation === sellingTeamLocation ) {
+          buyingTeamFinancials[tradeObject.quarter - 1].taxRate = 0.3;
+        }
+        else {
+          buyingTeamFinancials[tradeObject.quarter - 1].taxRate = 0.45;
+        }
+        buyingTeamFinancials.$save(tradeObject.quarter - 1);
+
+        // Update the charting information for the buying team
+        // 0 index = Operating Expenses, 1 = Operational Savings, 2 = Revenue, 3 = Net Income
+        var operatingExpensesData = [tradeObject.quarter, tradeObject.priceSoldFor];
+        buyingTeamCharting[0].data.push(operatingExpensesData);
+        buyingTeamCharting.$save(0);
+
+        var operationalSavingsData = [tradeObject.quarter, 2000000 * serviceMultiplier];
+        buyingTeamCharting[1].data.push(operationalSavingsData);
+        buyingTeamCharting.$save(1);
+
+
+        var buyTeamRev = buyingTeamFinancials[tradeObject.quarter - 1].revenues;
+        var buyTeamOpSav = buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings;
+        var buyTeamOpExp = buyingTeamFinancials[tradeObject.quarter - 1].operatingExpenses;
+        var buyTeamCogs = buyingTeamFinancials[tradeObject.quarter - 1].cogs;
+        var buyTeamTaxRate = buyingTeamFinancials[tradeObject.quarter - 1].taxRate;
+
+        // Check to see if the two trades have been completed to ensure all fields are filled for BUYING TEAM
+        if (!isNaN(buyTeamRev+buyTeamOpSav+buyTeamOpExp+buyTeamCogs+buyTeamTaxRate)) {
+          buyingTeamFinancials[tradeObject.quarter - 1].netIncome = (buyTeamRev+buyTeamOpSav-buyTeamOpExp-buyTeamCogs)*(1-buyTeamTaxRate);
+          buyingTeamFinancials.$save(tradeObject.quarter - 1);
+
+          var buyTeamNetIncomeData = [tradeObject.quarter, (buyTeamRev + buyTeamOpSav - buyTeamOpExp - buyTeamCogs) * (1 - buyTeamTaxRate)];
+          buyingTeamCharting[3].data.push(buyTeamNetIncomeData);
+        }
+
+        // Add the financial info for the selling team
+        var sellingTeamFinancialRef = new Firebase(FIREBASE_URL).child("teams").child(tradeObject.companyProvidingId).child("financials");
+        var sellingTeamFinancials = $firebaseArray(sellingTeamFinancialRef);
+
+        // Get the charting object for the selling team
+        var sellingTeamChartingRef = new Firebase(FIREBASE_URL).child("teams").child(tradeObject.companyProvidingId).child("charting");
+        var sellingTeamCharting = $firebaseArray(sellingTeamChartingRef);
+
+        // When the array has loaded, perform the following operations for the selling team
+        sellingTeamFinancials.$loaded(function () {
+          // Revenues for the selling team
+          sellingTeamFinancials[tradeObject.quarter - 1].revenues = Number(tradeObject.priceSoldFor);
+          var serviceCogs = serviceDetails[tradeObject.service][sellingTeamLocation];
+          sellingTeamFinancials[tradeObject.quarter - 1].cogs = Number(serviceCogs);
+
+          // Add the revenue information for the selling team
+          sellingTeamCharting.$loaded(function () {
+            var revenueData = [tradeObject.quarter, tradeObject.priceSoldFor];
+            sellingTeamCharting[2].data.push(revenueData);
+            sellingTeamCharting.$save(2);
+          });
+
+          var sellTeamRev = sellingTeamFinancials[tradeObject.quarter - 1].revenues;
+          var sellTeamOpSav = sellingTeamFinancials[tradeObject.quarter - 1].operationalSavings;
+          var sellTeamOpExp = sellingTeamFinancials[tradeObject.quarter - 1].operatingExpenses;
+          var sellTeamCogs = sellingTeamFinancials[tradeObject.quarter - 1].cogs;
+          var sellTeamTaxRate = sellingTeamFinancials[tradeObject.quarter - 1].taxRate;
+
+          // Check to see if the fields are all filled to calculate net income for SELLING TEAM
+          if (!isNaN(sellTeamRev+sellTeamOpSav+sellTeamOpExp+sellTeamCogs+sellTeamTaxRate)) {
+            sellingTeamFinancials[tradeObject.quarter - 1].netIncome = (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate);
+            sellingTeamFinancials.$save(tradeObject.quarter - 1);
+
+            sellingTeamCharting.$loaded(function () {
+              var netIncomeData = [tradeObject.quarter, (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate)];
+              sellingTeamCharting[3].data.push(netIncomeData);
+              sellingTeamCharting.$save(3);
+            });
+          }
+
+        });
+      };
+
+
       var acceptTrade = function (id) {
 
         var tradeObjectPending = tradesPending.$getRecord(id);
-
         // Define the providing team's sent array to remove trade object
         var providingTeamId = tradesPending.$getRecord(id).companyProvidingId;
 
@@ -353,13 +498,16 @@
         tradesPending.$remove(tradeObjectPending);
         tradesAccept.$add(tradeObjectPending);
         tradesAccept.$save(tradeObjectPending);
+        updateFinancials(tradeObjectPending);
 
       };
 
       var declineTrade = function (id) {
 
         // Define the providing team's sent array to remove trade object
-        var providingTeamId = tradesPending[id].companyProvidingId;
+        console.log(id);
+        console.log(tradesPending);
+        var providingTeamId = tradesPending.$getRecord(id).companyProvidingId;
 
         var providingTeamSentRef = new Firebase(FIREBASE_URL).child("teams").child(providingTeamId).child("trades").child("sent");
         var providingTeamTradesSent = $firebaseArray(providingTeamSentRef);
@@ -367,7 +515,7 @@
         var providingTeamTradesDeclined = $firebaseArray(providingTeamDeclinedRef);
 
         // Define the trade object and the id for the same object in the sending teams array
-        var tradeObjectPending = tradesPending[id];
+        var tradeObjectPending = tradesPending.$getRecord(id);
         var sentTradeId = tradeObjectPending.tradeSentId;
 
         providingTeamTradesSent.$loaded(function () { // Always remember to make sure the data is loaded before executing
@@ -408,6 +556,11 @@
         url: '/',
         templateUrl: 'templates/home.html',
         controller: 'homeCtrl'
+      })
+      .state('CompanyAndServiceInfo', {
+        url: '/CompanyAndServiceInfo',
+        templateUrl: 'templates/CompanyAndServiceInfo.html',
+        controller: 'companyAndServiceInfoCtrl'
       })
       .state('teams', {
         url: '/teams',
