@@ -1,153 +1,160 @@
-<h1>Company and Service Information</h1>
+<div class="grid-container">
+  <h1>Company and Service Information</h1>
 
-<ul class="button-group segmented">
-  <li>
-    <input type="radio" name="industry" value="accounting" id="accounting" ng-model="radioVal" ng-change="toggleCards(radioVal)">
-    <label for="accounting">Accounting</label>
-  </li>
-  <li>
-    <input type="radio" name="industry" value="consulting" id="consulting" ng-model="radioVal" ng-change="toggleCards(radioVal)">
-    <label for="consulting">Consulting</label>
-  </li>
-  <li>
-    <input type="radio" name="industry" value="finance" id="finance" ng-model="radioVal" ng-change="toggleCards(radioVal)">
-    <label for="finance">Finance</label>
-  </li>
-  <li>
-    <input type="radio" name="industry" value="marketing" id="marketing" ng-model="radioVal" ng-change="toggleCards(radioVal)">
-    <label for="marketing">Marketing</label>
-  </li>
-</ul>
+  <ul class="button-group segmented">
+    <li>
+      <input type="radio" name="industry" value="accounting" id="accounting" ng-model="radioVal"
+             ng-change="toggleCards(radioVal)">
+      <label for="accounting">Accounting</label>
+    </li>
+    <li>
+      <input type="radio" name="industry" value="consulting" id="consulting" ng-model="radioVal"
+             ng-change="toggleCards(radioVal)">
+      <label for="consulting">Consulting</label>
+    </li>
+    <li>
+      <input type="radio" name="industry" value="finance" id="finance" ng-model="radioVal"
+             ng-change="toggleCards(radioVal)">
+      <label for="finance">Finance</label>
+    </li>
+    <li>
+      <input type="radio" name="industry" value="marketing" id="marketing" ng-model="radioVal"
+             ng-change="toggleCards(radioVal)">
+      <label for="marketing">Marketing</label>
+    </li>
+  </ul>
 
-<h2>Service Description</h2>
-<div class="grid-block">
+  <h2>Service Description</h2>
 
-  <div class="grid-block" ng-hide="showCompanies.accounting">
-    <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Accounting">
-      <div class="card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
+  <div class="grid-block">
 
-        <div class="card-divider">
-          {{serviceName}}
-        </div>
-        <div class="card-section">
-          {{serviceDescription}}
-        </div>
-      </div>
-    </div>
-  </div>
+    <div class="grid-block" ng-hide="showCompanies.accounting">
+      <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Accounting">
+        <div class="card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
 
-  <div class="grid-block" ng-hide="showCompanies.consulting">
-    <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Consulting">
-      <div class="card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
-
-        <div class="card-divider">
-          {{serviceName}}
-        </div>
-        <div class="card-section">
-          {{serviceDescription}}
+          <div class="card-divider">
+            {{serviceName}}
+          </div>
+          <div class="card-section">
+            {{serviceDescription}}
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="grid-block" ng-hide="showCompanies.marketing">
-    <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Marketing">
-      <div class="card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
+    <div class="grid-block" ng-hide="showCompanies.consulting">
+      <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Consulting">
+        <div class="card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
 
-        <div class="card-divider">
-          {{serviceName}}
-        </div>
-        <div class="card-section">
-          {{serviceDescription}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-block" ng-hide="showCompanies.finance">
-    <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Finance">
-      <div class="card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
-
-        <div class="card-divider">
-          {{serviceName}}
-        </div>
-        <div class="card-section">
-          {{serviceDescription}}
+          <div class="card-divider">
+            {{serviceName}}
+          </div>
+          <div class="card-section">
+            {{serviceDescription}}
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="grid-block" ng-hide="showCompanies.marketing">
+      <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Marketing">
+        <div class="card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
+
+          <div class="card-divider">
+            {{serviceName}}
+          </div>
+          <div class="card-section">
+            {{serviceDescription}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-block" ng-hide="showCompanies.finance">
+      <div class="grid-content" ng-repeat="(serviceName, serviceDescription) in serviceInfo.Finance">
+        <div class="card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
+
+          <div class="card-divider">
+            {{serviceName}}
+          </div>
+          <div class="card-section">
+            {{serviceDescription}}
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
+  <h2>Company Bios</h2>
+
+  <div class="grid-block">
+
+    <div class="grid-block medium-up-2" ng-hide="showCompanies.accounting">
+      <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Accounting">
+        <div class="dark card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
+
+          <div class="card-divider">
+            {{companyName}}
+          </div>
+          <div class="card-section">
+            {{companyBio}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-block medium-up-2" ng-hide="showCompanies.consulting">
+      <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Consulting">
+        <div class="dark card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
+
+          <div class="card-divider">
+            {{companyName}}
+          </div>
+          <div class="card-section">
+            {{companyBio}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-block medium-up-2" ng-hide="showCompanies.marketing">
+      <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Marketing">
+        <div class="dark card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
+
+          <div class="card-divider">
+            {{companyName}}
+          </div>
+          <div class="card-section">
+            {{companyBio}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-block medium-up-2" ng-hide="showCompanies.finance">
+      <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Finance">
+        <div class="dark card">
+          <!--<img src="http://placekitten.com/g/400/200">-->
+
+          <div class="card-divider">
+            {{companyName}}
+          </div>
+          <div class="card-section">
+            {{companyBio}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<h2>Company Bios</h2>
-<div class="grid-block">
-
-  <div class="grid-block" ng-hide="showCompanies.accounting">
-    <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Accounting">
-      <div class="dark card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
-
-        <div class="card-divider">
-          {{companyName}}
-        </div>
-        <div class="card-section">
-          {{companyBio}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-block" ng-hide="showCompanies.consulting">
-    <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Consulting">
-      <div class="dark card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
-
-        <div class="card-divider">
-          {{companyName}}
-        </div>
-        <div class="card-section">
-          {{companyBio}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-block" ng-hide="showCompanies.marketing">
-    <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Marketing">
-      <div class="dark card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
-
-        <div class="card-divider">
-          {{companyName}}
-        </div>
-        <div class="card-section">
-          {{companyBio}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-block" ng-hide="showCompanies.finance">
-    <div class="grid-content" ng-repeat="(companyName, companyBio) in companyInfo.Finance">
-      <div class="dark card">
-        <!--<img src="http://placekitten.com/g/400/200">-->
-
-        <div class="card-divider">
-          {{companyName}}
-        </div>
-        <div class="card-section">
-          {{companyBio}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!--</div>-->
 

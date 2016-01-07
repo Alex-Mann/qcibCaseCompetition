@@ -1,0 +1,29 @@
+<div class="grid-container">
+  <h1>Income Statements</h1>
+  <table class="responsive pure-table-striped pure-table-bordered">
+    <tbody>
+    <tr>
+      <th>Countrhy</th>
+      <th>Industry</th>
+      <th>Company</th>
+      <th>Revenues</th>
+      <th>Operational Savings</th>
+      <th>COGS</th>
+      <th>Operating Expenses</th>
+      <th>Tax Rate</th>
+      <th>Net Income</th>
+    </tr>
+    <tr ng-repeat="team in teams | filter:{name:'!Administrator'} ">
+      <td>{{team.country}}</td>
+      <td>{{team.industry}}</td>
+      <td>{{team.name}}</td>
+      <td>{{team.financials[0].revenues | isString | currency}}</td>
+      <td>{{team.financials[0].operationalSavings  | isString | currency}}</td>
+      <td>{{team.financials[0].cogs  | isString | currency}}</td>
+      <td>{{team.financials[0].operatingExpenses  | isString | currency}}</td>
+      <td>{{team.financials[0].taxRate  | isString | currency}}</td>
+      <td>{{team.financials[0].netIncome  | isString | currency}}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>

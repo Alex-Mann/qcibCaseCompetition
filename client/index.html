@@ -22,6 +22,7 @@
           <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home"><img style="margin-bottom: 0px" src="assets/img/qciblogo.png"></img></a></li>
           <li><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
           <li><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
+          <li><a class="fa fa-usd" ui-sref="IncomeStatement">Income Statements</a></li>
           <!--<li><a ng-click="getAuth()">Get Auth</a></li>-->
           <!--<li><a ng-click="getTeam()">Get Team</a></li>-->
         </ul>
@@ -60,7 +61,7 @@
       <a class="button" ng-click="login()" zf-close="basicModal">login</a>
     </div>
   </div>
-  <div ui-view></div>
+  <div ui-view style="overflow-y: auto"></div>
 </div>
 </body>
 </html>

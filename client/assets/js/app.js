@@ -6,6 +6,7 @@
     'ngAnimate',
     'firebase',
     'highcharts-ng',
+    //'datatables',
 
     //foundation
     'foundation',
@@ -24,6 +25,25 @@
         }
       });
     }])
+    //.filter('isString', function () {
+    //  return function (input) {
+    //    if (isNaN(input)) {
+    //      return '';
+    //    }
+    //    else {
+    //      return input;
+    //    }
+    //
+    //}
+    //  )
+    .filter('isString', function() {
+      return function(input) {
+        input = input || '';
+        if (isNaN(input)) return '';
+        else return input;
+        }
+      }
+    )
 
     .controller('topBarCtrl', function ($scope, $state, FIREBASE_URL, $firebaseObject, Auth) {
       var currentQuarterRef = new Firebase(FIREBASE_URL + "newsFlashes/currentQuarter");
@@ -78,6 +98,10 @@
         $scope.showCompanies = visibility;
       };
     })
+    .controller('incomeStatementCtrl', function ($scope, $state, Auth, $firebaseObject, $firebaseArray, FIREBASE_URL) {
+      $scope.teams = $firebaseArray(new Firebase(FIREBASE_URL).child("teams"));
+
+    })
     .controller('adminCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
@@ -131,7 +155,7 @@
 
     })
 
-    .controller('teamCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL, Auth) {
+    .controller('teamCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL, Auth, FoundationApi) {
 
       //Need to load the firebase arrays before using any functions on them, so define as global to controller
       var newsFeedRef = new Firebase(FIREBASE_URL).child("newsFlashes").child("teams");
@@ -140,18 +164,60 @@
 
       $scope.newsNest = $scope.newsfeed.news;
 
-      console.log($scope.newsfeed);
-
       var tradesRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades");
       $scope.trades = $firebaseObject(tradesRef);
+      var tradesPendingRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades").child("pending");
+      $scope.tradesPending = $firebaseArray(tradesPendingRef);
+      var tradesAcceptedRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades").child("accepted");
+      $scope.tradesAccepted = $firebaseArray(tradesAcceptedRef);
+      var tradesDeclinedRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades").child("declined");
+      $scope.tradesDeclined = $firebaseArray(tradesDeclinedRef);
+      var tradesSentRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("trades").child("sent");
+      $scope.tradesSent = $firebaseArray(tradesSentRef);
+
 
       var teamRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid);
       $scope.teamInfo = $firebaseObject(teamRef);
-      console.log($scope.teamInfo);
 
-      $scope.seeTrades = function () {
-        console.log($scope.trades.pending);
-      }
+      // Notification Handling for sent, decline, accept, and received trades
+      $scope.tradesPending.$watch(function (event) {
+        if ($scope.tradesPending.$getRecord(event.key).companyProvidingName) {
+          var companyOffering = $scope.tradesPending.$getRecord(event.key).companyProvidingName;
+        }
+        if (event.event === "child_added") {
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'You received a trade offer from ' + companyOffering + '!', color:"success", autoclose:5000})
+        }
+      });
+
+      $scope.tradesSent.$watch(function (event) {
+        if ($scope.tradesSent.$getRecord(event.key).companyReceivingName) {
+          var companyReceiving = $scope.tradesSent.$getRecord(event.key).companyReceivingName;
+        }
+        if (event.event === "child_added") {
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was sent to ' + companyReceiving + '!', color:"alert", autoclose:5000})
+        }
+      });
+
+      $scope.tradesDeclined.$watch(function (event) {
+        if ($scope.tradesDeclined.$getRecord(event.key).companyProvidingName) {
+          var companyOffering = $scope.tradesDeclined.$getRecord(event.key).companyProvidingName;
+        }
+
+        if (event.event === "child_added" && $scope.currentTeam.name === companyOffering) {
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was declined by ' + companyOffering + '!', color:"alert", autoclose:5000})
+        }
+      });
+
+      $scope.tradesAccepted.$watch(function (event) {
+        if ($scope.tradesAccepted.$getRecord(event.key).companyReceivingName) {
+          var companyReceiving = $scope.tradesAccepted.$getRecord(event.key).companyReceivingName;
+        }
+
+        if (event.event === "child_added" && $scope.currentTeam.name !== companyReceiving) {
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was accepted by ' + companyReceiving + '!', color:"success", autoclose:5000})
+        }
+      });
+
 
       var competitorsRef = new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("competitors");
       $scope.competitors = $firebaseObject(competitorsRef);
@@ -196,21 +262,10 @@
         },
         useHighStocks: false
       };
-    //  $scope.chartConfig.series.push({
-    //    name:"test",
-    //    data: [0, '0']
-    //});
 
       var chartRef =  new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("charting");
       $scope.chartConfig.series = $firebaseArray(chartRef);
 
-      //chartObject.$watch(function () {
-      //  console.log("called watch");
-      //  $scope.chartConfig.series[0].data = chartObject[0].data;
-      //
-      //});
-
-      console.log($scope.chartConfig.series);
     })
 
     .controller('tradeCtrl', function ($scope, tradeManager, Auth) {
@@ -225,12 +280,6 @@
       $scope.declineTrade = function (id) {
         tradeManager.declineTrade(id);
       };
-
-      $scope.testTrade = function (price, receivingTeam, serviceOffered) {
-        console.log($scope.currentTeam.name + " with Id of " + Auth.getAuth().uid + " is selling " + serviceOffered + " for $" + price + " to " + receivingTeam.name + " with Id of " + receivingTeam.id);
-        console.log($scope.currentTeam);
-        console.log(receivingTeam);
-      }
     })
 
     .factory("Auth", function ($firebaseAuth, $firebaseObject, $state, $rootScope, FIREBASE_URL) {
@@ -338,6 +387,9 @@
       var locationDetailsRef = new Firebase(FIREBASE_URL).child("locationDetails");
       var locationDetails= $firebaseObject(locationDetailsRef);
 
+      var industryDetailsRef = new Firebase(FIREBASE_URL).child("industryDetails");
+      var industryDetails= $firebaseObject(industryDetailsRef);
+
       var makeTrade = function (price, receivingTeam, providingTeam, serviceOffered) {
 
         var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam.id).child("trades").child("pending");
@@ -384,11 +436,12 @@
       };
 
       var updateFinancials = function (tradeObject) {
+        var buyingTeamIndustry = industryDetails[tradeObject.companyReceivingName];
         // Add the financial info for the buying team
         buyingTeamFinancials[tradeObject.quarter - 1].operatingExpenses = Number(tradeObject.priceSoldFor);
 
         // Determine the operational savings for the buying team
-        var serviceMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].serviceMultiplier[tradeObject.industry].serviceChosen[tradeObject.service]);
+        var serviceMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].serviceMultiplier[buyingTeamIndustry].serviceChosen[tradeObject.service]);
         buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings = Number(2000000 * serviceMultiplier);
 
         // If the buying team purchases the service from a company that is domestic to them they receive a lower tax rate
@@ -442,6 +495,7 @@
           sellingTeamFinancials[tradeObject.quarter - 1].revenues = Number(tradeObject.priceSoldFor);
           var serviceCogs = serviceDetails[tradeObject.service][sellingTeamLocation];
           sellingTeamFinancials[tradeObject.quarter - 1].cogs = Number(serviceCogs);
+          sellingTeamFinancials.$save(tradeObject.quarter - 1);
 
           // Add the revenue information for the selling team
           sellingTeamCharting.$loaded(function () {
@@ -458,8 +512,10 @@
 
           // Check to see if the fields are all filled to calculate net income for SELLING TEAM
           if (!isNaN(sellTeamRev+sellTeamOpSav+sellTeamOpExp+sellTeamCogs+sellTeamTaxRate)) {
-            sellingTeamFinancials[tradeObject.quarter - 1].netIncome = (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate);
-            sellingTeamFinancials.$save(tradeObject.quarter - 1);
+            sellingTeamFinancials.$loaded(function () {
+              sellingTeamFinancials[tradeObject.quarter - 1].netIncome = (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate);
+              sellingTeamFinancials.$save(tradeObject.quarter - 1);
+            });
 
             sellingTeamCharting.$loaded(function () {
               var netIncomeData = [tradeObject.quarter, (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate)];
@@ -476,6 +532,8 @@
 
         var tradeObjectPending = tradesPending.$getRecord(id);
         // Define the providing team's sent array to remove trade object
+        console.log(id);
+        console.log(tradesPending);
         var providingTeamId = tradesPending.$getRecord(id).companyProvidingId;
 
         var providingTeamSentRef = new Firebase(FIREBASE_URL).child("teams").child(providingTeamId).child("trades").child("sent");
@@ -520,6 +578,7 @@
 
         providingTeamTradesSent.$loaded(function () { // Always remember to make sure the data is loaded before executing
           var recordToRemove = providingTeamTradesSent.$getRecord(sentTradeId);
+          console.log(recordToRemove);
           providingTeamTradesSent.$remove(recordToRemove);
         });
 
@@ -560,7 +619,28 @@
       .state('CompanyAndServiceInfo', {
         url: '/CompanyAndServiceInfo',
         templateUrl: 'templates/CompanyAndServiceInfo.html',
-        controller: 'companyAndServiceInfoCtrl'
+        controller: 'companyAndServiceInfoCtrl',
+        resolve: {
+          // controller will not be loaded until $waitForAuth resolves
+          // Auth refers to our $firebaseAuth wrapper in the example above
+          "currentAuth": ["Auth", function (Auth) {
+            // requireAuth returns a promise if authenticated, rejects if not
+            return Auth.requireAuth();
+          }]
+        }
+      })
+      .state('IncomeStatement', {
+        url: '/IncomeStatement',
+        templateUrl: 'templates/incomeStatement.html',
+        controller: 'incomeStatementCtrl',
+        resolve: {
+          // controller will not be loaded until $waitForAuth resolves
+          // Auth refers to our $firebaseAuth wrapper in the example above
+          "currentAuth": ["Auth", function (Auth) {
+            // requireAuth returns a promise if authenticated, rejects if not
+            return Auth.requireAuth();
+          }]
+        }
       })
       .state('teams', {
         url: '/teams',

@@ -1,3 +1,5 @@
+<zf-notification-set id="main-notifications" position="top-right"></zf-notification-set>
+
 <div class="grid-block">
   <div class="medium-5 grid-block">
     <div class="grid-content">
@@ -22,27 +24,42 @@
     </div>
     <div class="grid-block" ng-controller="tradeCtrl">
       <div class="grid-content">
-        <a class="button" ng-click="seeTrades()">See Trades</a>
-
         <div class="grid-block">
           <div class="small-12 medium-6 grid-content">
-            <label>Send offer to</label>
+            <label><header>Send offer to</header></label>
             <select ng-model="receivingTeam" ng-options="competitor.name for (id,competitor) in competitors">
               <option value="" disabled="disabled" ng-selected="true">Choose a Team</option>
             </select>
           </div>
           <div class="small-12 medium-6 grid-content">
-            <label>Select Service</label>
+            <label><header>Select Service</header></label>
             <select ng-model="serviceOffered" ng-options="service for (id, service) in servicesOffered">
               <option value="" disabled="disabled" ng-selected="true">Choose a Service</option>
             </select>
           </div>
           <div class="small-12 grid-content">
             <label>
-              Negotiated Selling Price
+              <header>Negotiated Selling Price</header>
             <span class="inline-label">
               <input type="search" placeholder="Enter Price" ng-model="priceOffered">
               <a href="#" ng-click="makeTrade(priceOffered,receivingTeam,serviceOffered)" class="button">Send Offer<i class="fa fa-paper-plane"></i></a>
+            </span>
+            </label>
+          </div>
+          <div class="small-12 grid-content">
+            <label>
+            <span class="inline-label">
+              <section class="block-list">
+                <header>Pending Trades</header>
+                <ul>
+                  <li ng-repeat="(key, object) in trades.sent">
+                    <a href="#">
+                      You have a pending trade with <strong>{{object.companyReceivingName}}</strong> offering <strong>{{object.service}}</strong> services, for a price of
+                      <strong>${{object.priceSoldFor}}</strong>
+                    </a>
+                  </li>
+                </ul>
+              </section>
             </span>
             </label>
           </div>

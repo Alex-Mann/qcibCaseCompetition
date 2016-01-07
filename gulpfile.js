@@ -40,8 +40,10 @@ var paths = {
     'bower_components/angular-animate/angular-animate.js',
     'bower_components/angular-ui-router/release/angular-ui-router.js',
     'bower_components/jquery/dist/jquery.js',
+    //'bower_components/datatables/media/js/jquery.dataTables.js',
     'bower_components/firebase/firebase.js',
     'bower_components/angularfire/dist/angularfire.js',
+    //'bower_components/angular-datatables/dist/angular-datatables.js',
     'etc/highstock.src.js',
     'bower_components/highcharts-ng/dist/highcharts-ng.js',
     'bower_components/foundation-apps/js/vendor/**/*.js',
@@ -50,10 +52,10 @@ var paths = {
   ],
   // These files are for your app's JavaScript
   appJS: [
-
+    'client/assets/js/responsive-tables.js',
     'client/assets/js/app.js'
   ]
-}
+};
 
 // 3. TASKS
 // - - - - - - - - - - - - - - -
