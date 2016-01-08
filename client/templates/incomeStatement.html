@@ -1,29 +1,94 @@
 <div class="grid-container">
   <h1>Income Statements</h1>
-  <table class="responsive pure-table-striped pure-table-bordered">
+  <ul class="button-group segmented">
+    <li>
+      <input type="radio" name="country" value="Scotland" id="Scotland" ng-model="countryRadioSelector">
+      <label for="Scotland">Scotland</label>
+    </li>
+    <li>
+      <input type="radio" name="country" value="Japan" id="Japan" ng-model="countryRadioSelector">
+      <label for="Japan">Japan</label>
+    </li>
+    <li>
+      <input type="radio" name="country" value="Germany" id="Germany" ng-model="countryRadioSelector">
+      <label for="Germany">Germany</label>
+    </li>
+    <li>
+      <input type="radio" name="country" value="Brazil" id="Brazil" ng-model="countryRadioSelector">
+      <label for="Brazil">Brazil</label>
+    </li>
+  </ul>
+  <ul class="button-group segmented">
+    <li>
+      <input type="radio" name="quarter" value=0 id="quarterOne" ng-model="quarterRadioSelector">
+      <label for="quarterOne">Quarter 1</label>
+    </li>
+    <li>
+      <input type="radio" name="quarter" value=1 id="quarterTwo" ng-model="quarterRadioSelector">
+      <label for="quarterTwo">Quarter 2</label>
+    </li>
+    <li>
+      <input type="radio" name="quarter" value=2 id="quarterThree" ng-model="quarterRadioSelector">
+      <label for="quarterThree">Quarter 3</label>
+    </li>
+    <li>
+      <input type="radio" name="quarter" value=3 id="quarterFour" ng-model="quarterRadioSelector">
+      <label for="quarterFour">Quarter 4</label>
+    </li>
+  </ul>
+  <table class="responsive">
     <tbody>
     <tr>
-      <th>Countrhy</th>
-      <th>Industry</th>
-      <th>Company</th>
+      <th>Company Name</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}"><h5>{{team.name}}</h5></td>
+    </tr>
+    <tr>
+      <th>Country and Industry</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}">{{team.country}}, {{team.industry}}</td>
+    </tr>
+    <tr>
       <th>Revenues</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}">{{team.financials[quarterRadioSelector].revenues | isString | currency}}</td>
+    </tr>
+    <tr>
       <th>Operational Savings</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}">{{team.financials[quarterRadioSelector].operationalSavings | isString | currency}}</td>
+    </tr>
+    <tr>
       <th>COGS</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}">({{team.financials[quarterRadioSelector].cogs | isString | currency}})</td>
+    </tr>
+    <tr>
       <th>Operating Expenses</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}">({{team.financials[quarterRadioSelector].operatingExpenses | isString | currency}})</td>
+    </tr>
+    <tr>
       <th>Tax Rate</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}">{{team.financials[quarterRadioSelector].taxRate | isString | percentage}}</td>
+    </tr>
+    <tr>
       <th>Net Income</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}"><strong>{{team.financials[quarterRadioSelector].netIncome | isString | currency}}</strong></td>
     </tr>
-    <tr ng-repeat="team in teams | filter:{name:'!Administrator'} ">
-      <td>{{team.country}}</td>
-      <td>{{team.industry}}</td>
-      <td>{{team.name}}</td>
-      <td>{{team.financials[0].revenues | isString | currency}}</td>
-      <td>{{team.financials[0].operationalSavings  | isString | currency}}</td>
-      <td>{{team.financials[0].cogs  | isString | currency}}</td>
-      <td>{{team.financials[0].operatingExpenses  | isString | currency}}</td>
-      <td>{{team.financials[0].taxRate  | isString | currency}}</td>
-      <td>{{team.financials[0].netIncome  | isString | currency}}</td>
-    </tr>
+
+    <!--<th>Company</th>-->
+    <!--<th>Revenues</th>-->
+    <!--<th>Operational Savings</th>-->
+    <!--<th>COGS</th>-->
+    <!--<th>Operating Expenses</th>-->
+    <!--<th>Tax Rate</th>-->
+    <!--<th>Net Income</th>-->
+    <!--<tr ng-repeat="team in teams | filter:{name:'!Administrator'} ">-->
+      <!--<td>{{team.country}}</td>-->
+      <!--<td>{{team.industry}}</td>-->
+      <!--<td>{{team.name}}</td>-->
+      <!--<td>{{team.financials[0].revenues | isString | currency}}</td>-->
+      <!--<td>{{team.financials[0].operationalSavings | isString | currency}}</td>-->
+      <!--<td>{{team.financials[0].cogs | isString | currency}}</td>-->
+      <!--<td>{{team.financials[0].operatingExpenses | isString | currency}}</td>-->
+      <!--<td>{{team.financials[0].taxRate | isString | currency}}</td>-->
+      <!--<td>{{team.financials[0].netIncome | isString | currency}}</td>-->
+    <!--</tr>-->
     </tbody>
   </table>
 </div>

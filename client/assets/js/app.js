@@ -2,17 +2,17 @@
   'use strict';
 
   angular.module('application', [
-    'ui.router',
-    'ngAnimate',
-    'firebase',
-    'highcharts-ng',
-    //'datatables',
+      'ui.router',
+      'ngAnimate',
+      'firebase',
+      'highcharts-ng',
+      //'datatables',
 
-    //foundation
-    'foundation',
-    'foundation.dynamicRouting',
-    'foundation.dynamicRouting.animations'
-  ])
+      //foundation
+      'foundation',
+      'foundation.dynamicRouting',
+      'foundation.dynamicRouting.animations'
+    ])
     .constant('FIREBASE_URL', 'https://blazing-heat-1366.firebaseIO.com/')
 
     .run(["$rootScope", "$state", function ($rootScope, $state) {
@@ -37,17 +37,44 @@
     //}
     //  )
     .filter('isString', function() {
-      return function(input) {
-        input = input || '';
-        if (isNaN(input)) return '';
-        else return input;
+        return function(input) {
+          input = input || '';
+          if (isNaN(input)) return '';
+          else return input;
+        }
+      }
+    )
+    .filter('percentage', function() {
+        return function(input) {
+          if (isNaN(input)) {
+            return input;
+          }
+          return Math.floor(input * 100) + '%';
         }
       }
     )
 
-    .controller('topBarCtrl', function ($scope, $state, FIREBASE_URL, $firebaseObject, Auth) {
+    .controller('topBarCtrl', function ($scope, $state, FIREBASE_URL, $firebaseObject, $firebaseArray, Auth) {
       var currentQuarterRef = new Firebase(FIREBASE_URL + "newsFlashes/currentQuarter");
       $scope.currentQuarter = $firebaseObject(currentQuarterRef);
+
+
+      if (Auth.isLoggedIn()) {
+        $scope.companyServiceCogsInfo = {};
+        var companyServices = $firebaseArray(new Firebase(FIREBASE_URL).child("teams").child(Auth.getAuth().uid).child("services"));
+        var companyServiceCogs = $firebaseObject(new Firebase(FIREBASE_URL).child("serviceDetails"));
+        // Generate an object which contains the service name and cost information for each respective team
+        companyServiceCogs.$loaded().then(function () {
+          companyServices.$loaded().then(function () {
+            $scope.companyServiceCogsInfo[companyServices[0].$value] = companyServiceCogs[companyServices[0].$value][$scope.currentTeam.country];
+            $scope.companyServiceCogsInfo[companyServices[1].$value] = companyServiceCogs[companyServices[1].$value][$scope.currentTeam.country];
+            $scope.companyServiceCogsInfo[companyServices[2].$value] = companyServiceCogs[companyServices[2].$value][$scope.currentTeam.country];
+            $scope.companyServiceCogsInfo[companyServices[3].$value] = companyServiceCogs[companyServices[3].$value][$scope.currentTeam.country];
+          });
+
+        });
+      }
+
 
       $scope.login = function () {
         Auth.login($scope.login.user, $scope.login.pass);
@@ -101,6 +128,18 @@
     .controller('incomeStatementCtrl', function ($scope, $state, Auth, $firebaseObject, $firebaseArray, FIREBASE_URL) {
       $scope.teams = $firebaseArray(new Firebase(FIREBASE_URL).child("teams"));
 
+      $scope.countryRadioSelector = "Scotland";
+      $scope.quarterRadioSelector = 0;
+      $scope.toggleCards = function (quarter) {
+        var visibility = {
+          quarterOne: true,
+          quarterTwo: true,
+          quarterThree: true,
+          quarterFour: true
+        };
+        visibility[industry] = false;
+        $scope.showCompanies = visibility;
+      }
     })
     .controller('adminCtrl', function ($scope, $firebaseObject, $firebaseArray, FIREBASE_URL) {
 
@@ -181,39 +220,43 @@
 
       // Notification Handling for sent, decline, accept, and received trades
       $scope.tradesPending.$watch(function (event) {
-        if ($scope.tradesPending.$getRecord(event.key).companyProvidingName) {
+        if ($scope.tradesPending.$getRecord(event.key)) {
           var companyOffering = $scope.tradesPending.$getRecord(event.key).companyProvidingName;
         }
         if (event.event === "child_added") {
+          console.log(event);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'You received a trade offer from ' + companyOffering + '!', color:"success", autoclose:5000})
         }
       });
 
       $scope.tradesSent.$watch(function (event) {
-        if ($scope.tradesSent.$getRecord(event.key).companyReceivingName) {
+        if ($scope.tradesSent.$getRecord(event.key)) {
           var companyReceiving = $scope.tradesSent.$getRecord(event.key).companyReceivingName;
         }
         if (event.event === "child_added") {
-          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was sent to ' + companyReceiving + '!', color:"alert", autoclose:5000})
+          console.log(event);
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was sent to ' + companyReceiving + '!', color:"success", autoclose:5000})
         }
       });
 
       $scope.tradesDeclined.$watch(function (event) {
-        if ($scope.tradesDeclined.$getRecord(event.key).companyProvidingName) {
+        if ($scope.tradesDeclined.$getRecord(event.key)) {
           var companyOffering = $scope.tradesDeclined.$getRecord(event.key).companyProvidingName;
         }
 
         if (event.event === "child_added" && $scope.currentTeam.name === companyOffering) {
+          console.log(event);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was declined by ' + companyOffering + '!', color:"alert", autoclose:5000})
         }
       });
 
       $scope.tradesAccepted.$watch(function (event) {
-        if ($scope.tradesAccepted.$getRecord(event.key).companyReceivingName) {
+        if ($scope.tradesAccepted.$getRecord(event.key)) {
           var companyReceiving = $scope.tradesAccepted.$getRecord(event.key).companyReceivingName;
         }
 
         if (event.event === "child_added" && $scope.currentTeam.name !== companyReceiving) {
+          console.log(event);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was accepted by ' + companyReceiving + '!', color:"success", autoclose:5000})
         }
       });
@@ -437,11 +480,14 @@
 
       var updateFinancials = function (tradeObject) {
         var buyingTeamIndustry = industryDetails[tradeObject.companyReceivingName];
+        var sellingTeamCountry = locationDetails[tradeObject.companyProvidingName];
         // Add the financial info for the buying team
         buyingTeamFinancials[tradeObject.quarter - 1].operatingExpenses = Number(tradeObject.priceSoldFor);
 
         // Determine the operational savings for the buying team
         var serviceMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].serviceMultiplier[buyingTeamIndustry].serviceChosen[tradeObject.service]);
+        var globalEconMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].locationMultiplier[sellingTeamCountry]);
+        console.log(globalEconMultiplier);
         buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings = Number(2000000 * serviceMultiplier);
 
         // If the buying team purchases the service from a company that is domestic to them they receive a lower tax rate

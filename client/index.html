@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QCIB Case Simulation</title>
-  <link href="/assets/img/favicon.ico" rel="icon" type="image/x-icon" />
+  <link href="/assets/img/favicon.ico" rel="icon" type="image/x-icon"/>
   <link href="/assets/css/app.css" rel="stylesheet" type="text/css">
   <script src="/assets/js/foundation.js"></script>
   <script src="/assets/js/templates.js"></script>
@@ -15,25 +15,58 @@
 
 
 <div class="grid-frame vertical">
-  <div class="grid-content shrink" style="padding: 0;" ng-controller="topBarCtrl">
-    <div class="menu-group primary">
-      <div class="menu-group-left">
-        <ul class="primary condense menu-bar">
-          <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home"><img style="margin-bottom: 0px" src="assets/img/qciblogo.png"></img></a></li>
-          <li><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
-          <li><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
-          <li><a class="fa fa-usd" ui-sref="IncomeStatement">Income Statements</a></li>
-          <!--<li><a ng-click="getAuth()">Get Auth</a></li>-->
-          <!--<li><a ng-click="getTeam()">Get Team</a></li>-->
-        </ul>
-      </div>
-      <div class="menu-group-right">
-        <ul class="primary condense menu-bar">
-          <li ng-hide="!currentTeam.name" ng-cloak><a class="fa fa-clock-o">Current Quarter: {{currentQuarter.$value}}</a></li>
-          <li ng-hide="!currentTeam.name" ng-cloak><a class="fa fa-user">{{currentTeam.name}}</a></li>
-          <li ng-hide="currentTeam" ng-cloak><a class="fa fa-sign-in" zf-open="basicModal">Login</a></li>
-          <li ng-hide="!currentTeam" ng-cloak><a class="fa fa-sign-out" ng-click="logout()">Logout</a></li>
-        </ul>
+  <!--<div style="padding: 0;" >-->
+  <div class="menu-group primary" ng-controller="topBarCtrl">
+    <div class="menu-group-left">
+      <ul class="primary condense menu-bar">
+        <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home"><img style="margin-bottom: 0px"
+                                                                                 src="assets/img/qciblogo.png"></img></a>
+        </li>
+        <li><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
+        <li><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
+        <li><a class="fa fa-usd" ui-sref="IncomeStatement">Income Statements</a></li>
+        <!--<li><a ng-click="getAuth()">Get Auth</a></li>-->
+        <!--<li><a ng-click="getTeam()">Get Team</a></li>-->
+      </ul>
+    </div>
+    <div class="menu-group-right">
+      <ul class="primary condense menu-bar">
+        <li ng-hide="!currentTeam.name" ng-cloak><a class="fa fa-clock-o">Current Quarter: {{currentQuarter.$value}}</a>
+        </li>
+        <li ng-hide="!currentTeam.name" ng-cloak><a class="fa fa-user" zf-open="companyModal">{{currentTeam.name}}</a>
+        </li>
+        <li ng-hide="currentTeam" ng-cloak><a class="fa fa-sign-in" zf-open="basicModal">Login</a></li>
+        <li ng-hide="!currentTeam" ng-cloak><a class="fa fa-sign-out" ng-click="logout()">Logout</a></li>
+      </ul>
+    </div>
+
+    <!--Modal for Company Service Info-->
+    <div zf-modal="" id="companyModal" ng-cloak>
+      <a zf-close="" class="close-button">×</a>
+
+      <h3>{{currentTeam.name}} - Company Services</h3>
+
+      <p>
+        Below are your company's services that can be sold to other teams. You will find the cost of goods sold (COGS)
+        information associated with each service below, and therefore it is important that during your negotiations that
+        you do not offer to sell your services for less than this price otherwise you will not generate any revenue! To
+        read about your team's service descriptions please use the Company and Service Information button on the top
+        menu bar.
+      </p>
+
+      <div class="grid-block medium-up-2">
+        <div class="grid-content" ng-repeat="(service, serviceCost) in companyServiceCogsInfo">
+          <div class="card">
+            <!--<img src="http://placekitten.com/g/400/200">-->
+
+            <div class="card-divider">
+              {{service}}
+            </div>
+            <div class="card-section">
+              {{serviceCost | currency}}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Modal for User Login-->
@@ -61,7 +94,8 @@
       <a class="button" ng-click="login()" zf-close="basicModal">login</a>
     </div>
   </div>
-  <div ui-view style="overflow-y: auto"></div>
+
+  <div ui-view class="grid-block"></div>
 </div>
 </body>
 </html>
