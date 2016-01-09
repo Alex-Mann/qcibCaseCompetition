@@ -19,8 +19,8 @@
   <div class="menu-group primary" ng-controller="topBarCtrl">
     <div class="menu-group-left">
       <ul class="primary condense menu-bar">
-        <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home"><img style="margin-bottom: 0px"
-                                                                                 src="assets/img/qciblogo.png"></img></a>
+        <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home">
+          <img style="margin-bottom: 0px" src="assets/img/qciblogo.png"></a>
         </li>
         <li><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
         <li><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
@@ -41,10 +41,10 @@
     </div>
 
     <!--Modal for Company Service Info-->
-    <div zf-modal="" id="companyModal" ng-cloak>
+    <div zf-modal="" class="large" id="companyModal" ng-cloak>
       <a zf-close="" class="close-button">×</a>
 
-      <h3>{{currentTeam.name}} - Company Services</h3>
+      <h3>{{currentTeam.name}}, {{currentTeam.country}} - Company Services</h3>
 
       <p>
         Below are your company's services that can be sold to other teams. You will find the cost of goods sold (COGS)

@@ -219,13 +219,20 @@
       $scope.teamInfo = $firebaseObject(teamRef);
 
       // Notification Handling for sent, decline, accept, and received trades
+      var prevKey = {}; // Keep a variable to hold the key value of the last event to prevent duplicate notifications
+      prevKey.pending = '';
+      prevKey.sent = '';
+      prevKey.declined = '';
+      prevKey.accepted = '';
+
       $scope.tradesPending.$watch(function (event) {
         if ($scope.tradesPending.$getRecord(event.key)) {
           var companyOffering = $scope.tradesPending.$getRecord(event.key).companyProvidingName;
         }
-        if (event.event === "child_added") {
+        if (event.event === "child_added" && event.key !== prevKey.pending) {
           console.log(event);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'You received a trade offer from ' + companyOffering + '!', color:"success", autoclose:5000})
+          prevKey.pending = event.key;
         }
       });
 
@@ -233,20 +240,23 @@
         if ($scope.tradesSent.$getRecord(event.key)) {
           var companyReceiving = $scope.tradesSent.$getRecord(event.key).companyReceivingName;
         }
-        if (event.event === "child_added") {
+        if (event.event === "child_added" && event.key !== prevKey.sent) {
           console.log(event);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was sent to ' + companyReceiving + '!', color:"success", autoclose:5000})
+          prevKey.sent = event.key;
         }
       });
+
 
       $scope.tradesDeclined.$watch(function (event) {
         if ($scope.tradesDeclined.$getRecord(event.key)) {
           var companyOffering = $scope.tradesDeclined.$getRecord(event.key).companyProvidingName;
         }
-
-        if (event.event === "child_added" && $scope.currentTeam.name === companyOffering) {
+        if (event.event === "child_added" && $scope.currentTeam.name === companyOffering && event.key !== prevKey.declined) {
           console.log(event);
+          console.log(prevKey);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was declined by ' + companyOffering + '!', color:"alert", autoclose:5000})
+          prevKey.declined = event.key;
         }
       });
 
@@ -255,9 +265,10 @@
           var companyReceiving = $scope.tradesAccepted.$getRecord(event.key).companyReceivingName;
         }
 
-        if (event.event === "child_added" && $scope.currentTeam.name !== companyReceiving) {
+        if (event.event === "child_added" && $scope.currentTeam.name !== companyReceiving && event.key !== prevKey.accepted) {
           console.log(event);
           FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'Your trade offer was accepted by ' + companyReceiving + '!', color:"success", autoclose:5000})
+          prevKey.accepted = event.key;
         }
       });
 
@@ -311,13 +322,31 @@
 
     })
 
-    .controller('tradeCtrl', function ($scope, tradeManager, Auth) {
+    .controller('tradeCtrl', function ($scope, tradeManager, $firebaseArray, $firebaseObject, FIREBASE_URL, FoundationApi) {
+      var servicesPurchasedCheck = $firebaseArray(new Firebase(FIREBASE_URL).child("servicesPurchased"));
+      var currentQuarter = $firebaseObject(new Firebase(FIREBASE_URL + "newsFlashes/currentQuarter"));
+
       $scope.makeTrade = function (price, receivingTeam, serviceOffered) {
-        tradeManager.makeTrade(price, receivingTeam, $scope.currentTeam, serviceOffered);
+        console.log(servicesPurchasedCheck);
+        console.log(currentQuarter.$value);
+        console.log(receivingTeam.name);
+        console.log(servicesPurchasedCheck[currentQuarter.$value-1][receivingTeam.name]);
+
+        if (servicesPurchasedCheck[currentQuarter.$value-1][receivingTeam.name]) {
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'You cannot offer your services to this company because they have already purchased services this quarter.', color:"warning", autoclose:5000})
+        }
+        else {
+          tradeManager.makeTrade(price, receivingTeam, $scope.currentTeam, serviceOffered);
+        }
       };
 
       $scope.acceptTrade = function (id) {
-        tradeManager.acceptTrade(id);
+        if (servicesPurchasedCheck[currentQuarter.$value-1][$scope.currentTeam.name]) {
+          FoundationApi.publish('main-notifications', { title: 'Trade Alert!', content: 'You cannot accept this trade as you have already purchased services this quarter.', color:"warning", autoclose:5000})
+        }
+        else {
+          tradeManager.acceptTrade(id);
+        }
       };
 
       $scope.declineTrade = function (id) {
@@ -433,6 +462,9 @@
       var industryDetailsRef = new Firebase(FIREBASE_URL).child("industryDetails");
       var industryDetails= $firebaseObject(industryDetailsRef);
 
+      var servicesPurchasedRef = new Firebase(FIREBASE_URL).child("servicesPurchased");
+      var servicesPurchased= $firebaseArray(servicesPurchasedRef);
+
       var makeTrade = function (price, receivingTeam, providingTeam, serviceOffered) {
 
         var receivingTeamRef = new Firebase(FIREBASE_URL).child("teams").child(receivingTeam.id).child("trades").child("pending");
@@ -480,19 +512,21 @@
 
       var updateFinancials = function (tradeObject) {
         var buyingTeamIndustry = industryDetails[tradeObject.companyReceivingName];
-        var sellingTeamCountry = locationDetails[tradeObject.companyProvidingName];
+        var buyingTeamLocation = locationDetails[tradeObject.companyReceivingName];
+        var sellingTeamLocation = locationDetails[tradeObject.companyProvidingName];
+
         // Add the financial info for the buying team
         buyingTeamFinancials[tradeObject.quarter - 1].operatingExpenses = Number(tradeObject.priceSoldFor);
 
         // Determine the operational savings for the buying team
         var serviceMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].serviceMultiplier[buyingTeamIndustry].serviceChosen[tradeObject.service]);
-        var globalEconMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].locationMultiplier[sellingTeamCountry]);
+        var globalEconMultiplier = Number(quarterlyDetails[tradeObject.quarter - 1].locationMultiplier[sellingTeamLocation]);
         console.log(globalEconMultiplier);
-        buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings = Number(2000000 * serviceMultiplier);
+        console.log(serviceMultiplier);
+        console.log(globalEconMultiplier * serviceMultiplier * 2000000);
+        buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings = Number(2000000 * serviceMultiplier * globalEconMultiplier);
 
         // If the buying team purchases the service from a company that is domestic to them they receive a lower tax rate
-        var buyingTeamLocation = locationDetails[tradeObject.companyReceivingName];
-        var sellingTeamLocation = locationDetails[tradeObject.companyProvidingName];
         if ( buyingTeamLocation === sellingTeamLocation ) {
           buyingTeamFinancials[tradeObject.quarter - 1].taxRate = 0.3;
         }
@@ -507,25 +541,35 @@
         buyingTeamCharting[0].data.push(operatingExpensesData);
         buyingTeamCharting.$save(0);
 
-        var operationalSavingsData = [tradeObject.quarter, 2000000 * serviceMultiplier];
+        var operationalSavingsData = [tradeObject.quarter, 2000000 * serviceMultiplier * globalEconMultiplier];
         buyingTeamCharting[1].data.push(operationalSavingsData);
         buyingTeamCharting.$save(1);
 
-
+        // Define these to make the below if statement more readable
         var buyTeamRev = buyingTeamFinancials[tradeObject.quarter - 1].revenues;
         var buyTeamOpSav = buyingTeamFinancials[tradeObject.quarter - 1].operationalSavings;
         var buyTeamOpExp = buyingTeamFinancials[tradeObject.quarter - 1].operatingExpenses;
         var buyTeamCogs = buyingTeamFinancials[tradeObject.quarter - 1].cogs;
         var buyTeamTaxRate = buyingTeamFinancials[tradeObject.quarter - 1].taxRate;
 
-        // Check to see if the two trades have been completed to ensure all fields are filled for BUYING TEAM
-        if (!isNaN(buyTeamRev+buyTeamOpSav+buyTeamOpExp+buyTeamCogs+buyTeamTaxRate)) {
-          buyingTeamFinancials[tradeObject.quarter - 1].netIncome = (buyTeamRev+buyTeamOpSav-buyTeamOpExp-buyTeamCogs)*(1-buyTeamTaxRate);
-          buyingTeamFinancials.$save(tradeObject.quarter - 1);
 
+        buyingTeamFinancials[tradeObject.quarter - 1].netIncome = (buyTeamRev+buyTeamOpSav-buyTeamOpExp-buyTeamCogs)*(1-buyTeamTaxRate);
+        buyingTeamFinancials.$save(tradeObject.quarter - 1);
+
+        // Check to see if the charting net income array has been established for that quarter
+        if (buyingTeamCharting[3].data[tradeObject.quarter] !== undefined) { // has been established
+          // Company has not sold services yet
           var buyTeamNetIncomeData = [tradeObject.quarter, (buyTeamRev + buyTeamOpSav - buyTeamOpExp - buyTeamCogs) * (1 - buyTeamTaxRate)];
-          buyingTeamCharting[3].data.push(buyTeamNetIncomeData);
+          buyingTeamCharting[3].data[tradeObject.quarter] = buyTeamNetIncomeData;
+          buyingTeamCharting.$save(3);
         }
+        else { // not established yet
+          var buyTeamNetIncomeData = [tradeObject.quarter, (buyTeamRev+buyTeamOpSav-buyTeamOpExp-buyTeamCogs)*(1-buyTeamTaxRate)];
+          buyingTeamCharting[3].data.push(buyTeamNetIncomeData);
+          buyingTeamCharting.$save(3);
+        }
+
+
 
         // Add the financial info for the selling team
         var sellingTeamFinancialRef = new Firebase(FIREBASE_URL).child("teams").child(tradeObject.companyProvidingId).child("financials");
@@ -538,16 +582,34 @@
         // When the array has loaded, perform the following operations for the selling team
         sellingTeamFinancials.$loaded(function () {
           // Revenues for the selling team
-          sellingTeamFinancials[tradeObject.quarter - 1].revenues = Number(tradeObject.priceSoldFor);
+          console.log('here');
+          sellingTeamFinancials[tradeObject.quarter - 1].revenues += Number(tradeObject.priceSoldFor);
           var serviceCogs = serviceDetails[tradeObject.service][sellingTeamLocation];
-          sellingTeamFinancials[tradeObject.quarter - 1].cogs = Number(serviceCogs);
+          sellingTeamFinancials[tradeObject.quarter - 1].cogs += Number(serviceCogs);
           sellingTeamFinancials.$save(tradeObject.quarter - 1);
 
-          // Add the revenue information for the selling team
+          // Add the charting revenue information for the selling team
           sellingTeamCharting.$loaded(function () {
-            var revenueData = [tradeObject.quarter, tradeObject.priceSoldFor];
-            sellingTeamCharting[2].data.push(revenueData);
-            sellingTeamCharting.$save(2);
+            var revenueData = [];
+
+            // Check if the array has already been defined by a previous trade
+            console.log(sellingTeamCharting[2].data[tradeObject.quarter] == undefined);
+            if (sellingTeamCharting[2].data[tradeObject.quarter] !== undefined) {
+              console.log('data already exists, add on to existing');
+              // Get the previous trade numbers and add prev + current to update total
+              var newVal = tradeObject.priceSoldFor + sellingTeamCharting[2].data[tradeObject.quarter][1];
+              console.log(sellingTeamCharting[2].data);
+              revenueData = [tradeObject.quarter, newVal];
+              console.log(revenueData);
+              sellingTeamCharting[2].data[tradeObject.quarter] = revenueData;
+              sellingTeamCharting.$save(2);
+            }
+            else {
+              revenueData = [tradeObject.quarter, tradeObject.priceSoldFor];
+              console.log(revenueData);
+              sellingTeamCharting[2].data.push(revenueData);
+              sellingTeamCharting.$save(2);
+            }
           });
 
           var sellTeamRev = sellingTeamFinancials[tradeObject.quarter - 1].revenues;
@@ -556,8 +618,30 @@
           var sellTeamCogs = sellingTeamFinancials[tradeObject.quarter - 1].cogs;
           var sellTeamTaxRate = sellingTeamFinancials[tradeObject.quarter - 1].taxRate;
 
-          // Check to see if the fields are all filled to calculate net income for SELLING TEAM
-          if (!isNaN(sellTeamRev+sellTeamOpSav+sellTeamOpExp+sellTeamCogs+sellTeamTaxRate)) {
+          // Check to see if the selling team has purchased any services
+          if (sellTeamOpExp === 0 && sellTeamOpSav === 0) {
+            // Team has not purchased services, net income is just rev-cogs (no tax rate included because no purchase made)
+            sellingTeamFinancials.$loaded(function () {
+              sellingTeamFinancials[tradeObject.quarter - 1].netIncome = (sellTeamRev - sellTeamCogs);
+              sellingTeamFinancials.$save(tradeObject.quarter - 1);
+            });
+
+            sellingTeamCharting.$loaded(function () {
+              // Check if the chart net income has been established (from a previous trade), if yes recalculate the net income as another trade has been made
+              var netIncomeData = [];
+              if (sellingTeamCharting[3].data[tradeObject.quarter] !== undefined) {
+                netIncomeData = [tradeObject.quarter, (sellTeamRev - sellTeamCogs)];
+                sellingTeamCharting[3].data[tradeObject.quarter] = netIncomeData;
+                sellingTeamCharting.$save(3);
+              }
+              else {
+                netIncomeData = [tradeObject.quarter, (sellTeamRev - sellTeamCogs)];
+                sellingTeamCharting[3].data.push(netIncomeData);
+                sellingTeamCharting.$save(3);
+              }
+            });
+          }
+          else {
             sellingTeamFinancials.$loaded(function () {
               sellingTeamFinancials[tradeObject.quarter - 1].netIncome = (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate);
               sellingTeamFinancials.$save(tradeObject.quarter - 1);
@@ -565,7 +649,7 @@
 
             sellingTeamCharting.$loaded(function () {
               var netIncomeData = [tradeObject.quarter, (sellTeamRev + sellTeamOpSav - sellTeamOpExp - sellTeamCogs) * (1 - sellTeamTaxRate)];
-              sellingTeamCharting[3].data.push(netIncomeData);
+              sellingTeamCharting[3].data[tradeObject.quarter] = netIncomeData;
               sellingTeamCharting.$save(3);
             });
           }
@@ -603,6 +687,11 @@
         tradesAccept.$add(tradeObjectPending);
         tradesAccept.$save(tradeObjectPending);
         updateFinancials(tradeObjectPending);
+
+        // Mark the buying team servicesPurchased to true so that they cannot make anymore trades!
+        console.log(servicesPurchased);
+        servicesPurchased[tradeObjectPending.quarter-1][tradeObjectPending.companyReceivingName] = true;
+        servicesPurchased.$save(tradeObjectPending.quarter - 1);
 
       };
 
