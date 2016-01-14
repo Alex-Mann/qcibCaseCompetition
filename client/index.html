@@ -22,9 +22,9 @@
         <li><a style="padding-top: 8px; padding-bottom: 5px" ui-sref="home">
           <img style="margin-bottom: 0px" src="assets/img/qciblogo.png"></a>
         </li>
-        <li><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
-        <li><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
-        <li><a class="fa fa-usd" ui-sref="IncomeStatement">Income Statements</a></li>
+        <li ng-hide="!currentTeam.name"><a class="fa fa-tachometer" ui-sref="teams">Company Portal </a></li>
+        <li ng-hide="!currentTeam.name"><a class="fa fa-university" ui-sref="CompanyAndServiceInfo">Company and Service Information</a></li>
+        <li ng-hide="!currentTeam.name"><a class="fa fa-usd" ui-sref="IncomeStatement">Income Statements</a></li>
         <!--<li><a ng-click="getAuth()">Get Auth</a></li>-->
         <!--<li><a ng-click="getTeam()">Get Team</a></li>-->
       </ul>
@@ -60,7 +60,7 @@
             <!--<img src="http://placekitten.com/g/400/200">-->
 
             <div class="card-divider">
-              {{service}}
+              <strong>{{service}}</strong>
             </div>
             <div class="card-section">
               {{serviceCost | currency}}

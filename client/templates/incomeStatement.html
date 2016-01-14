@@ -70,6 +70,10 @@
       <th>Net Income</th>
       <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}"><strong>{{team.financials[quarterRadioSelector].netIncome | isString | currency}}</strong></td>
     </tr>
+    <tr>
+      <th>Accumulated Net Income</th>
+      <td ng-repeat="team in teams | filter:{name:'!Administrator', country:countryRadioSelector}"><strong>{{team.financials[0].netIncome + team.financials[1].netIncome + team.financials[2].netIncome + team.financials[3].netIncome | isString | currency}}</strong></td>
+    </tr>
 
     <!--<th>Company</th>-->
     <!--<th>Revenues</th>-->

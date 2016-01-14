@@ -1,8 +1,90 @@
 <div class="grid-container">
-  <h1>Welcome to the QCIB 2016 Case Competition</h1>
+  <h1>Welcome to the QCIB 2016 Case Simulation</h1>
 
-  <p class="lead">This is version <strong>1.1 by Amann</strong>.</p>
+  <h4>
+    Below you will find the objectives, rules and format of the simulation. Please read through each one before the simulation begins.
+  </h4>
 
-  <p>The rules of the competition will go here...</p>
+  <zf-accordion auto-open="false" collapsible="true" multi-open="true">
+    <zf-accordion-item title="Objective">
+      <h2>Objective</h2>
+      <p><strong>Maximize your company’s net income over the period of four quarters.</strong></p>
+    </zf-accordion-item>
+    <zf-accordion-item title="Resources">
+      <h2>Resources</h2>
+      <ul>
+        <li><strong>Company Bios</strong> – provide brief descriptions of all companies (including strengths and weaknesses with respect to
+          the services they can provide) and can be found on the "Company Portal" tab.
+        </li>
+        <li><strong>Your Services and Associated COGS</strong> – provides a description of the services your company can provide to other
+          companies and includes the cost incurred by your company for providing that service - click on your Firm's Profile tab to see this information!
+        </li>
+        <li><strong>Services Available</strong> – describes the services provided by companies in other industries that your firm can hire,
+          as well as the services your company can provide. Find this information on your Firm's Profile tab!
+        </li>
+        <li><strong>Quarterly Update</strong>– released at the beginning of each round, this update is specific to your company and outlines
+          management’s most pressing concern for that quarter (which must be resolved within that round).
+        </li>
+        <li><strong>Global Economic Report</strong> – released at the beginning of each round, this blast contains information about the
+          particular economics of all countries included in the simulation. With this update you will have extra information
+          that may help you decide on which firm to hire when making decisions about how to solve the problem posed in the
+          quarterly report. The firm and service that you choose directly correlates to how much revenue you are able to
+          earn as it impacts your company’s operational savings.
+        </li>
+      </ul>
+    </zf-accordion-item>
+    <zf-accordion-item title="Round Instructions">
+      <h2>Round Instructions</h2>
+      <ul>
+        <li>Each Round begins with the release of a news report containing information specific to your company and also a global economic report.</li>
+        <li>The management report (which is specific to your company) poses a problem that needs to be solved. As a team, it is your responsibility to identify how to solve that problem.</li>
+        <li>Each problem can be solved directly by hiring another firm for a specific service (any of the 12 companies NOT in your own industry).</li>
+        <li>In order to hire another firm, your operations team must successfully negotiate a price for a specific service with the other firm’s sales team.</li>
+        <li>Once both teams have agreed on this price, the team PROVIDING the service will send a trade request through their Company Portal which will then appear on the buying firm’s Company Portal.</li>
+        <li>Once the buying firm accepts this trade request, the service has been sold and both firm’s information will be updated in their respective portals.</li>
+        <li>Your firm must hire the services of another firm each round to solve the issue you are facing that quarter. Taking no action is NOT an option (failure to do so results in the firm going out of business).</li>
+        <li>Each quarter your firm is able to save money through Operational Savings of up to $2M based on the company and service that you hire to solve your problem. The amount saved is added to your firms income before tax.</li>
+        <li>Each round, other companies will approach your firm looking to employ your services to solve their own issues. It is the responsibility of your Sales Team to negotiate with these companies and, if a deal is agreed upon, send the team looking to hire your firm a trade request for them to accept.</li>
+        <li>Although you may only hire ONE firm to solve your firm’s problem, your firm can be hired multiple times each round.</li>
+        <li>Your firms financial report, along with the other firms, will be visible in the income statement tab so that you may view your performance during each round.</li>
+      </ul>
+    </zf-accordion-item>
+    <zf-accordion-item title="Operational Savings">
+      <h2>Operational Savings</h2>
+      <ul>
+        <li>Your firm can save up to $2M each quarter by selecting and hiring the optimal combination of service and company hired to provide that service. If your firm does not hire the optimal combination, you can still save a portion of this total amount.</li>
+        <li>Your potential $2M in operational savings get multiplied by two factors, one factor is dependent on choosing the right service to solve your problem and the other factor depends on the firm that you choose (what country the firm is from).</li>
+        <li>By choosing the correct service you will receive a factor of 1, if you choose the right industry but the incorrect service you will receive a factor of 0.8. If you choose the incorrect industry you will receive a factor of 0.</li>
+        <li>The four firms for one industry range in expertise and productivity from 0.8 – 1. The global economic report is the best indicator of each firm’s expertise and productivity.</li>
+        <li>Based on your decisions, your firm will receive two factors ranging from 0 – 1. These factors are multiplied by $2M and determine your firm’s operational savings.</li>
+      </ul>
+    </zf-accordion-item>
+    <zf-accordion-item title="Roles">
+      <h2>Roles</h2>
+      <ul>
+        <li><strong>Sales Team</strong> – 2/3 people on your team will be responsible for negotiating with other companies to hire services to solve the management report problem.</li>
+        <li><strong>Operations Team </strong>– 2/3 people on your team will be responsible for negotiating with companies looking to employ your firms services.</li>
+      </ul>
+    </zf-accordion-item>
+    <zf-accordion-item title="Net Income Breakdown">
+      <h2>Net Income Breakdown</h2>
+      <ul>
+        <li><strong>Sales Revenue</strong> – Income earned by providing services to other firms (i.e. the price negotiated by your Sales team)</li>
+        <li><strong>COGS</strong> – The cost to your firm to provide a service for another firm</li>
+        <li><strong>Operating Expenses </strong>– The price negotiated with another firm to hire them for specific services</li>
+        <li><strong>Operational Savings </strong>– Dependent on the company and service hired (see above)</li>
+        <li><strong>Tax</strong> – The tax rate will be 30% if you hire a firm within your own country and will be 45% if you go outside of your country.</li>
+        <li><strong>Example Calculation:</strong> Net Income – (Revenue + Operational Savings – COGS – Operating Expenses)(1 – Tax Rate)</li>
+      </ul>
+    </zf-accordion-item>
+    <zf-accordion-item title="Additional Tips and Tricks">
+      <h2>Additional Tips and Tricks</h2>
+      <ul>
+        <li>Although some firms may have a higher expertise as indicated by the global economic report, they may only be able to offer these services for a higher price than other countries. It will be important for your team to determine the best value and combination of price paid versus expected operational savings.</li>
+        <li>Hiring a firm with a lower expertise/productivity factor will still solve your team’s problem, it will just result in lower Operational Savings. This could prove to be an effective strategy if you are able to get these services at a good price!</li>
+        <li>An efficient and highly profitable firm will determine the optimal balance between Operating Expenses and Operational Savings!</li>
+      </ul>
+    </zf-accordion-item>
+  </zf-accordion>
 </div>
 
